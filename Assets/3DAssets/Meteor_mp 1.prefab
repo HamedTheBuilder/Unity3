@@ -10,15 +10,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 71a47a482d5e8f1468d5d1f01fd87bc2, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 10.208876
+      value: -2.9348714
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 71a47a482d5e8f1468d5d1f01fd87bc2, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.09
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 71a47a482d5e8f1468d5d1f01fd87bc2, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -20.962158
+      value: 1.0612547
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 71a47a482d5e8f1468d5d1f01fd87bc2, type: 3}
       propertyPath: m_LocalRotation.w
@@ -52,6 +52,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Meteor_mp 1
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 71a47a482d5e8f1468d5d1f01fd87bc2, type: 3}
+      propertyPath: m_TagString
+      value: Asteroid
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -59,6 +63,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 71a47a482d5e8f1468d5d1f01fd87bc2, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4117085052111555358}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 71a47a482d5e8f1468d5d1f01fd87bc2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4992267907920584047}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 71a47a482d5e8f1468d5d1f01fd87bc2, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1929647217799449194}
   m_SourcePrefab: {fileID: 100100000, guid: 71a47a482d5e8f1468d5d1f01fd87bc2, type: 3}
 --- !u!1 &7693812307538408114 stripped
 GameObject:
@@ -78,3 +88,45 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   rotationSpeed: 40
+--- !u!114 &4992267907920584047
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7693812307538408114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f9354edae3fa474cba7d2884e17fc22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 8
+  currentHealth: 0
+  destructionEffect: {fileID: 4036567170970679725, guid: 02db693852bf0e449aa6f03e15d7bd65, type: 3}
+  scoreValue: 8
+  damageMaterial: {fileID: 2100000, guid: a73a8e276cdd16a45bc2631f34ad87b5, type: 2}
+  flashDuration: 0.2
+  explosionSound: {fileID: 0}
+--- !u!136 &1929647217799449194
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7693812307538408114}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 1.19
+  m_Height: 1
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
