@@ -104,9 +104,10 @@ MonoBehaviour:
   currentHealth: 0
   destructionEffect: {fileID: 4036567170970679725, guid: 02db693852bf0e449aa6f03e15d7bd65, type: 3}
   scoreValue: 8
-  damageMaterial: {fileID: 2100000, guid: a73a8e276cdd16a45bc2631f34ad87b5, type: 2}
-  flashDuration: 0.2
-  explosionSound: {fileID: 0}
+  damageColor: {r: 1, g: 0, b: 0, a: 1}
+  colorChangeDuration: 0.5
+  explosionSound: {fileID: 8300000, guid: 86d3bc3ef3dd0814292b7aad5c5d1569, type: 3}
+  soundVolume: 2
 --- !u!136 &1929647217799449194
 CapsuleCollider:
   m_ObjectHideFlags: 0

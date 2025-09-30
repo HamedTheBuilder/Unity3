@@ -126,8 +126,8 @@ MonoBehaviour:
   scoreValue: 10
   damageColor: {r: 1, g: 0, b: 0, a: 1}
   colorChangeDuration: 0.5
-  explosionSound: {fileID: 0}
-  soundVolume: 1
+  explosionSound: {fileID: 8300000, guid: 86d3bc3ef3dd0814292b7aad5c5d1569, type: 3}
+  soundVolume: 2
 --- !u!136 &7940833401376608114
 CapsuleCollider:
   m_ObjectHideFlags: 0

@@ -4,43 +4,95 @@ public class SimpleLaserGun : MonoBehaviour
 {
     [Header("Laser Settings")]
     public GameObject laserPrefab;
-    public Transform firePoint;
+    public Transform[] firePoints;
     public float laserSpeed = 20f;
     public float fireRate = 0.2f;
     public int damagePerShot = 1;
 
+    [Header("Sound Settings")]
+    public AudioClip laserSound;
+    public float soundVolume = 0.2f; // €Ì— „‰ 1 ≈·Ï 0.2
+    public float soundInterval = 0.5f;
+
+    [Header("Firing Mode")]
+    public FiringMode firingMode = FiringMode.Alternate;
+
+    public enum FiringMode
+    {
+        Alternate,
+        Simultaneous,
+        FirstOnly
+    }
+
     private float nextFireTime = 0f;
+    private float nextSoundTime = 0f;
+    private int currentFirePointIndex = 0;
+    private AudioSource audioSource;
 
     void Start()
     {
-        if (firePoint == null)
-            firePoint = transform;
+        if (firePoints == null || firePoints.Length == 0)
+        {
+            firePoints = new Transform[1] { transform };
+        }
+
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.volume = soundVolume; //  ÿ»Ìﬁ „” ÊÏ «·’Ê  «·„‰Œ›÷
+        }
     }
 
     void Update()
     {
         if (Input.GetMouseButton(0) && Time.time >= nextFireTime)
         {
-            ShootLaser();
+            ShootLasers();
             nextFireTime = Time.time + fireRate;
         }
     }
 
-    void ShootLaser()
+    void ShootLasers()
     {
-        if (laserPrefab == null || firePoint == null) return;
+        if (laserPrefab == null || firePoints.Length == 0) return;
 
-        // ≈‰‘«¡ «··Ì“—
+        switch (firingMode)
+        {
+            case FiringMode.Simultaneous:
+                foreach (Transform firePoint in firePoints)
+                {
+                    if (firePoint != null)
+                        CreateLaser(firePoint);
+                }
+                break;
+
+            case FiringMode.Alternate:
+                Transform currentFirePoint = firePoints[currentFirePointIndex];
+                if (currentFirePoint != null)
+                    CreateLaser(currentFirePoint);
+                currentFirePointIndex = (currentFirePointIndex + 1) % firePoints.Length;
+                break;
+
+            case FiringMode.FirstOnly:
+                if (firePoints[0] != null)
+                    CreateLaser(firePoints[0]);
+                break;
+        }
+
+        PlayLaserSound();
+    }
+
+    void CreateLaser(Transform firePoint)
+    {
         GameObject laser = Instantiate(laserPrefab, firePoint.position, firePoint.rotation);
 
-        // «·≈ÿ·«ﬁ ≈·Ï «·√„«„ (»« Ã«Â „ÕÊ— Z «·„ÊÃ»)
         Rigidbody laserRb = laser.GetComponent<Rigidbody>();
         if (laserRb != null)
         {
-            laserRb.linearVelocity = -firePoint.forward * laserSpeed; // €Ì— ≈·Ï ”«·»
+            laserRb.linearVelocity = -firePoint.forward * laserSpeed;
         }
 
-        // ≈⁄œ«œ «·÷——
         LaserProjectile laserProjectile = laser.GetComponent<LaserProjectile>();
         if (laserProjectile != null)
         {
@@ -48,5 +100,22 @@ public class SimpleLaserGun : MonoBehaviour
         }
 
         Destroy(laser, 3f);
+    }
+
+    void PlayLaserSound()
+    {
+        if (laserSound != null && Time.time >= nextSoundTime)
+        {
+            if (audioSource != null)
+            {
+                audioSource.PlayOneShot(laserSound, soundVolume);
+            }
+            else
+            {
+                AudioSource.PlayClipAtPoint(laserSound, transform.position, soundVolume);
+            }
+
+            nextSoundTime = Time.time + soundInterval;
+        }
     }
 }
