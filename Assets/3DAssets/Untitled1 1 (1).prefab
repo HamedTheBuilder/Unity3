@@ -48,6 +48,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -5151492872390713093, guid: bf0d0eb6b9ab5264d88617e9dd46fa1e, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: -3189575019860089800, guid: bf0d0eb6b9ab5264d88617e9dd46fa1e, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: -1918463665429075397, guid: bf0d0eb6b9ab5264d88617e9dd46fa1e, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -55,6 +63,18 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: bf0d0eb6b9ab5264d88617e9dd46fa1e, type: 3}
       propertyPath: m_Name
       value: Untitled1 1 (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: bf0d0eb6b9ab5264d88617e9dd46fa1e, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5787247916963140039, guid: bf0d0eb6b9ab5264d88617e9dd46fa1e, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7399509245356773287, guid: bf0d0eb6b9ab5264d88617e9dd46fa1e, type: 3}
+      propertyPath: m_Layer
+      value: 6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -102,7 +122,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxHealth: 5
   currentHealth: 0
-  destructionEffect: {fileID: 4036567170970679725, guid: 02db693852bf0e449aa6f03e15d7bd65, type: 3}
+  destructionEffect: {fileID: 856402543047316317, guid: 4cc55a7c908ef9e458e0ff4d26876801, type: 3}
   scoreValue: 5
   damageColor: {r: 1, g: 0, b: 0, a: 1}
   colorChangeDuration: 0.5

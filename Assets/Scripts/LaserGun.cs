@@ -11,7 +11,7 @@ public class SimpleLaserGun : MonoBehaviour
 
     [Header("Sound Settings")]
     public AudioClip laserSound;
-    public float soundVolume = 0.2f; // €Ì— „‰ 1 ≈·Ï 0.2
+    public float soundVolume = 0.2f;
     public float soundInterval = 0.5f;
 
     [Header("Firing Mode")]
@@ -24,7 +24,9 @@ public class SimpleLaserGun : MonoBehaviour
         FirstOnly
     }
 
-    private float nextFireTime = 0f;
+    // Â–« ÂÊ «·”ÿ— «·„Â„ - Ã⁄·Â public
+    [System.NonSerialized] public float nextFireTime = 0f;
+
     private float nextSoundTime = 0f;
     private int currentFirePointIndex = 0;
     private AudioSource audioSource;
@@ -40,7 +42,7 @@ public class SimpleLaserGun : MonoBehaviour
         if (audioSource == null)
         {
             audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.volume = soundVolume; //  ÿ»Ìﬁ „” ÊÏ «·’Ê  «·„‰Œ›÷
+            audioSource.volume = soundVolume;
         }
     }
 
@@ -102,7 +104,7 @@ public class SimpleLaserGun : MonoBehaviour
         Destroy(laser, 3f);
     }
 
-    void PlayLaserSound()
+    public void PlayLaserSound()
     {
         if (laserSound != null && Time.time >= nextSoundTime)
         {
