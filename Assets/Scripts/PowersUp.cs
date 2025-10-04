@@ -8,9 +8,6 @@ public class PowerUp : MonoBehaviour
     void Start()
     {
         AddLightOnly();
-
-        // تشخيص: طباعة معلومات القدرة
-        Debug.Log($"🔧 تم إنشاء قدرة: {powerUpType} | التاج: {gameObject.tag} | الكوليدر: {GetComponent<Collider>() != null}");
     }
 
     void Update()
@@ -20,39 +17,21 @@ public class PowerUp : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        Debug.Log($"🎯 التصادم: {other.name} | التاج: {other.tag}");
-
         if (other.CompareTag("Player"))
         {
-            Debug.Log($"✅ تم اكتشاف اللاعب: {other.name}");
-
-            SpaceshipMovement shipMovement = other.GetComponent<SpaceshipMovement>();
             PowerUpSystem powerSystem = other.GetComponent<PowerUpSystem>();
+            PowerUpManager powerManager = other.GetComponent<PowerUpManager>();
 
-            if (shipMovement != null && powerSystem != null)
+            if (powerSystem != null)
             {
-                Debug.Log($"🎁 تطبيق قدرة: {powerUpType}");
-                ApplyPowerUp(other.gameObject);
+                // استخدام النظام الجديد - تفعيل فوري
+                powerSystem.CollectPowerUp(powerUpType);
                 Destroy(gameObject);
             }
             else
             {
-                Debug.LogWarning($"❌ لم يتم العثور على المكونات المطلوبة على اللاعب");
+                Debug.LogWarning($"❌ لم يتم العثور على PowerUpSystem على اللاعب");
             }
-        }
-    }
-
-    void ApplyPowerUp(GameObject player)
-    {
-        PowerUpSystem powerUpSystem = player.GetComponent<PowerUpSystem>();
-        if (powerUpSystem != null)
-        {
-            powerUpSystem.CollectPowerUp(powerUpType);
-            Debug.Log($"✅ تم جمع قدرة: {powerUpType}");
-        }
-        else
-        {
-            Debug.LogError($"❌ لم يتم العثور على PowerUpSystem على اللاعب");
         }
     }
 

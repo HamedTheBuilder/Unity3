@@ -3,7 +3,7 @@ using UnityEngine;
 public class SimpleLaserGun : MonoBehaviour
 {
     [Header("Laser Settings")]
-    public GameObject laserPrefab;
+    public GameObject laserPrefab; // ÇáÈÑíİÇÈ ÇáÍÇáí (íãßä ÊÛííÑå ÏíäÇãíßíÇğ)
     public Transform[] firePoints;
     public float laserSpeed = 20f;
     public float fireRate = 0.2f;
@@ -24,7 +24,6 @@ public class SimpleLaserGun : MonoBehaviour
         FirstOnly
     }
 
-    // åĞÇ åæ ÇáÓØÑ Çáãåã - ÌÚáå public
     [System.NonSerialized] public float nextFireTime = 0f;
 
     private float nextSoundTime = 0f;
@@ -119,5 +118,11 @@ public class SimpleLaserGun : MonoBehaviour
 
             nextSoundTime = Time.time + soundInterval;
         }
+    }
+
+    // ÏÇáÉ ãÓÇÚÏÉ áÊÛííÑ ÈÑíİÇÈ ÇááíÒÑ ÏíäÇãíßíÇğ
+    public void ChangeLaserPrefab(GameObject newLaserPrefab)
+    {
+        laserPrefab = newLaserPrefab;
     }
 }

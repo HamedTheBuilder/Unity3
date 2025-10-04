@@ -16,100 +16,135 @@ public class PowerUpManager : MonoBehaviour
     public Image shieldIcon;
     public Image multiShotIcon;
 
+    [Header("Power Up Prefab Associations - ASSIGN IN INSPECTOR")]
+    public GameObject blueLaserPowerUpPrefab;
+    public GameObject speedBoostPowerUpPrefab;
+    public GameObject shieldPowerUpPrefab;
+    public GameObject multiShotPowerUpPrefab;
+
     [Header("Settings")]
     public Color activeColor = Color.white;
     public Color inactiveColor = new Color(1, 1, 1, 0.3f);
 
-    // مخزون القدرات
     private Dictionary<PowerUpType, int> powerUpInventory = new Dictionary<PowerUpType, int>();
+    private Dictionary<GameObject, PowerUpType> prefabToTypeMap = new Dictionary<GameObject, PowerUpType>();
 
     void Start()
     {
+        InitializePrefabMappings();
         InitializeInventory();
         UpdateUI();
     }
 
+    void InitializePrefabMappings()
+    {
+        // ربط البريفابات مع أنواع القدرات
+        if (blueLaserPowerUpPrefab != null)
+            prefabToTypeMap[blueLaserPowerUpPrefab] = PowerUpType.BlueLaser;
+
+        if (speedBoostPowerUpPrefab != null)
+            prefabToTypeMap[speedBoostPowerUpPrefab] = PowerUpType.SpeedBoost;
+
+        if (shieldPowerUpPrefab != null)
+            prefabToTypeMap[shieldPowerUpPrefab] = PowerUpType.Shield;
+
+        if (multiShotPowerUpPrefab != null)
+            prefabToTypeMap[multiShotPowerUpPrefab] = PowerUpType.MultiShot;
+
+        Debug.Log("✅ تم ربط البريفابات مع أنواع القدرات");
+    }
+
     void InitializeInventory()
     {
-        // بداية اللعبة بدون قدرات
         powerUpInventory[PowerUpType.BlueLaser] = 0;
         powerUpInventory[PowerUpType.SpeedBoost] = 0;
         powerUpInventory[PowerUpType.Shield] = 0;
         powerUpInventory[PowerUpType.MultiShot] = 0;
-
-        Debug.Log("🔄 تم تهيئة مخزون القدرات");
     }
 
-    // إضافة قدرة جديدة للمخزون
-    public void AddPowerUp(PowerUpType type)
+    // إضافة قدرة بناءً على البريفاب
+    public void AddPowerUpByPrefab(GameObject powerUpPrefab)
     {
-        powerUpInventory[type]++;
-        UpdateUI();
-
-        Debug.Log($"➕ {GetPowerUpName(type)} | المخزون: {powerUpInventory[type]}");
-    }
-
-    // استخدام قدرة من المخزون
-    public bool UsePowerUp(PowerUpType type)
-    {
-        if (powerUpInventory[type] > 0)
+        if (prefabToTypeMap.ContainsKey(powerUpPrefab))
         {
-            powerUpInventory[type]--;
-            UpdateUI();
-
-            Debug.Log($"➖ {GetPowerUpName(type)} | المخزون: {powerUpInventory[type]}");
-            return true;
+            PowerUpType type = prefabToTypeMap[powerUpPrefab];
+            AddPowerUp(type);
         }
         else
         {
-            Debug.LogWarning($"❌ لا يوجد {GetPowerUpName(type)} في المخزون");
-            return false;
+            Debug.LogWarning($"❌ البريفاب {powerUpPrefab.name} غير مرتبط بأي نوع قدرة");
         }
     }
 
-    // الحصول على عدد القدرات المتاحة
-    public int GetPowerUpCount(PowerUpType type)
+    // إضافة قدرة مباشرة بالنوع
+    public void AddPowerUp(PowerUpType type)
     {
-        return powerUpInventory[type];
+        if (powerUpInventory.ContainsKey(type))
+        {
+            powerUpInventory[type]++;
+            UpdateSpecificUI(type);
+            Debug.Log($"➕ تمت إضافة {GetPowerUpName(type)} | المخزون: {powerUpInventory[type]}");
+        }
     }
 
-    // تحديث واجهة المستخدم
-    void UpdateUI()
+    public bool UsePowerUp(PowerUpType type)
     {
-        // تحديث النصوص
-        UpdateText(blueLaserCountText, PowerUpType.BlueLaser);
-        UpdateText(speedBoostCountText, PowerUpType.SpeedBoost);
-        UpdateText(shieldCountText, PowerUpType.Shield);
-        UpdateText(multiShotCountText, PowerUpType.MultiShot);
-
-        // تحديث الأيقونات
-        UpdateIcon(blueLaserIcon, PowerUpType.BlueLaser);
-        UpdateIcon(speedBoostIcon, PowerUpType.SpeedBoost);
-        UpdateIcon(shieldIcon, PowerUpType.Shield);
-        UpdateIcon(multiShotIcon, PowerUpType.MultiShot);
+        if (powerUpInventory.ContainsKey(type) && powerUpInventory[type] > 0)
+        {
+            powerUpInventory[type]--;
+            UpdateSpecificUI(type);
+            Debug.Log($"➖ تم استخدام {GetPowerUpName(type)} | المخزون: {powerUpInventory[type]}");
+            return true;
+        }
+        return false;
     }
 
-    void UpdateText(Text textElement, PowerUpType type)
+    void UpdateSpecificUI(PowerUpType type)
+    {
+        switch (type)
+        {
+            case PowerUpType.BlueLaser:
+                UpdateTextAndIcon(blueLaserCountText, blueLaserIcon, type);
+                break;
+            case PowerUpType.SpeedBoost:
+                UpdateTextAndIcon(speedBoostCountText, speedBoostIcon, type);
+                break;
+            case PowerUpType.Shield:
+                UpdateTextAndIcon(shieldCountText, shieldIcon, type);
+                break;
+            case PowerUpType.MultiShot:
+                UpdateTextAndIcon(multiShotCountText, multiShotIcon, type);
+                break;
+        }
+    }
+
+    void UpdateTextAndIcon(Text textElement, Image iconElement, PowerUpType type)
     {
         if (textElement != null)
         {
             textElement.text = powerUpInventory[type].ToString();
-
-            // تغيير لون النص إذا كان المخزون 0
             textElement.color = powerUpInventory[type] > 0 ? Color.white : Color.gray;
         }
-    }
 
-    void UpdateIcon(Image iconElement, PowerUpType type)
-    {
         if (iconElement != null)
         {
-            // تغيير شفافية الأيقونة حسب المخزون
             iconElement.color = powerUpInventory[type] > 0 ? activeColor : inactiveColor;
         }
     }
 
-    // الحصول على اسم القدرة بالعربية
+    void UpdateUI()
+    {
+        UpdateTextAndIcon(blueLaserCountText, blueLaserIcon, PowerUpType.BlueLaser);
+        UpdateTextAndIcon(speedBoostCountText, speedBoostIcon, PowerUpType.SpeedBoost);
+        UpdateTextAndIcon(shieldCountText, shieldIcon, PowerUpType.Shield);
+        UpdateTextAndIcon(multiShotCountText, multiShotIcon, PowerUpType.MultiShot);
+    }
+
+    public int GetPowerUpCount(PowerUpType type)
+    {
+        return powerUpInventory.ContainsKey(type) ? powerUpInventory[type] : 0;
+    }
+
     string GetPowerUpName(PowerUpType type)
     {
         switch (type)
@@ -122,34 +157,11 @@ public class PowerUpManager : MonoBehaviour
         }
     }
 
-    // عرض معلومات المخزون (للتشخيص)
-    public void PrintInventory()
+    public PowerUpType GetPowerUpTypeFromPrefab(GameObject prefab)
     {
-        Debug.Log("📦 مخزون القدرات:");
-        Debug.Log($"🔵 ليزر أزرق: {powerUpInventory[PowerUpType.BlueLaser]}");
-        Debug.Log($"🟡 سرعة: {powerUpInventory[PowerUpType.SpeedBoost]}");
-        Debug.Log($"🔴 درع: {powerUpInventory[PowerUpType.Shield]}");
-        Debug.Log($"💜 إطلاق متعدد: {powerUpInventory[PowerUpType.MultiShot]}");
-    }
+        if (prefabToTypeMap.ContainsKey(prefab))
+            return prefabToTypeMap[prefab];
 
-    // إضافة قدرات للاختبار (اختياري)
-    public void AddTestPowerUps()
-    {
-        AddPowerUp(PowerUpType.BlueLaser);
-        AddPowerUp(PowerUpType.SpeedBoost);
-        AddPowerUp(PowerUpType.Shield);
-        AddPowerUp(PowerUpType.MultiShot);
-    }
-
-    // مسح جميع القدرات (لإعادة الضبط)
-    public void ClearAllPowerUps()
-    {
-        powerUpInventory[PowerUpType.BlueLaser] = 0;
-        powerUpInventory[PowerUpType.SpeedBoost] = 0;
-        powerUpInventory[PowerUpType.Shield] = 0;
-        powerUpInventory[PowerUpType.MultiShot] = 0;
-
-        UpdateUI();
-        Debug.Log("🗑️ تم مسح جميع القدرات");
+        return PowerUpType.BlueLaser; // قيمة افتراضية
     }
 }

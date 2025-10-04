@@ -17,28 +17,37 @@ public class PowerUpSystem : MonoBehaviour
     private GameObject currentShield;
 
     [Header("Laser Settings")]
-    public GameObject laserPrefab; // بريفاب الليزر الأساسي
-    public Material blueLaserMaterial; // الماتيرال الأزرق من الإنسبكتور
-    private Material originalLaserMaterial;
-    public SimpleLaserGun laserGun;
+    public GameObject normalLaserPrefab;
+    public GameObject blueLaserPrefab;
+    public GameObject multiShotLaserPrefab;
 
+    // حفظ الإعدادات الأصلية
+    private Transform[] originalFirePoints;
+    private SimpleLaserGun.FiringMode originalFiringMode;
+    private GameObject originalLaserPrefab;
+    private float originalSpeed;
+
+    private SimpleLaserGun laserGun;
     private SpaceshipMovement spaceshipMovement;
-    private Coroutine currentPowerUpCoroutine;
-    private bool isPowerUpActive = false;
+    private Coroutine activePowerUpCoroutine;
+    private PowerUpType currentActivePowerUp = PowerUpType.BlueLaser;
 
     void Start()
     {
         spaceshipMovement = GetComponent<SpaceshipMovement>();
         laserGun = GetComponent<SimpleLaserGun>();
 
-        // حفظ الماتيرال الأصلي للليزر
-        if (laserPrefab != null)
+        // حفظ الإعدادات الأصلية
+        if (laserGun != null)
         {
-            Renderer laserRenderer = laserPrefab.GetComponent<Renderer>();
-            if (laserRenderer != null)
-            {
-                originalLaserMaterial = laserRenderer.sharedMaterial;
-            }
+            originalFirePoints = laserGun.firePoints;
+            originalFiringMode = laserGun.firingMode;
+            originalLaserPrefab = laserGun.laserPrefab;
+        }
+
+        if (spaceshipMovement != null)
+        {
+            originalSpeed = spaceshipMovement.speed;
         }
 
         if (shipLight != null)
@@ -46,7 +55,7 @@ public class PowerUpSystem : MonoBehaviour
             shipLight.enabled = false;
         }
 
-        Debug.Log("✅ نظام القدرات جاهز");
+        Debug.Log("✅ نظام القدرات جاهز - الإعدادات الأصلية محفوظة");
     }
 
     void Update()
@@ -56,20 +65,19 @@ public class PowerUpSystem : MonoBehaviour
 
     void HandlePowerUpInput()
     {
-        // لا تتحقق إذا كانت قدرة نشطة - يسمح باستخدام القدرات مباشرة
-        if (Input.GetKeyDown(KeyCode.Alpha1)) // زر 1 - ليزر أزرق
+        if (Input.GetKeyDown(KeyCode.Alpha1))
         {
             TryUsePowerUp(PowerUpType.BlueLaser);
         }
-        else if (Input.GetKeyDown(KeyCode.Alpha2)) // زر 2 - سرعة
+        else if (Input.GetKeyDown(KeyCode.Alpha2))
         {
             TryUsePowerUp(PowerUpType.SpeedBoost);
         }
-        else if (Input.GetKeyDown(KeyCode.Alpha3)) // زر 3 - درع
+        else if (Input.GetKeyDown(KeyCode.Alpha3))
         {
             TryUsePowerUp(PowerUpType.Shield);
         }
-        else if (Input.GetKeyDown(KeyCode.Alpha4)) // زر 4 - إطلاق متعدد
+        else if (Input.GetKeyDown(KeyCode.Alpha4))
         {
             TryUsePowerUp(PowerUpType.MultiShot);
         }
@@ -80,7 +88,7 @@ public class PowerUpSystem : MonoBehaviour
         if (powerUpManager != null && powerUpManager.UsePowerUp(type))
         {
             Debug.Log($"🎯 استخدام قدرة: {type}");
-            StartCoroutine(ActivatePowerUp(type));
+            StartPowerUp(type);
         }
         else
         {
@@ -95,126 +103,148 @@ public class PowerUpSystem : MonoBehaviour
         if (powerUpManager != null)
         {
             powerUpManager.AddPowerUp(type);
+            Debug.Log($"✅ تمت إضافة {type} إلى المخزون - العدد: {powerUpManager.GetPowerUpCount(type)}");
+
+            // تفعيل فوري عند الجمع
+            if (CanAutoActivate(type))
+            {
+                Debug.Log($"⚡ تفعيل فوري للقدرة: {type}");
+                StartPowerUp(type);
+            }
         }
     }
 
-    IEnumerator ActivatePowerUp(PowerUpType type)
+    // تحديد أي القدرات يتم تفعيلها فورياً عند الجمع
+    bool CanAutoActivate(PowerUpType type)
     {
-        // لا نمنع استخدام قدرات جديدة - يسمح باستخدام أكثر من قدرة
+        // هنا يمكنك تحديد أي القدرات تتفعل فوراً
+        // حالياً جميع القدرات تتفعل فوراً عند الجمع
+        return true;
+    }
 
+    void StartPowerUp(PowerUpType type)
+    {
         // إيقاف القدرة السابقة إذا كانت نشطة
-        if (currentPowerUpCoroutine != null)
+        if (activePowerUpCoroutine != null)
         {
-            StopCoroutine(currentPowerUpCoroutine);
+            StopCoroutine(activePowerUpCoroutine);
             ResetToNormal();
         }
 
-        // تفعيل القدرة الجديدة
-        switch (type)
-        {
-            case PowerUpType.BlueLaser:
-                currentPowerUpCoroutine = StartCoroutine(BlueLaserRoutine());
-                break;
-            case PowerUpType.SpeedBoost:
-                currentPowerUpCoroutine = StartCoroutine(SpeedBoostRoutine());
-                break;
-            case PowerUpType.Shield:
-                currentPowerUpCoroutine = StartCoroutine(ShieldRoutine());
-                break;
-            case PowerUpType.MultiShot:
-                currentPowerUpCoroutine = StartCoroutine(MultiShotRoutine());
-                break;
-        }
+        currentActivePowerUp = type;
+        activePowerUpCoroutine = StartCoroutine(PowerUpRoutine(type));
+    }
 
+    IEnumerator PowerUpRoutine(PowerUpType type)
+    {
+        // تفعيل القدرة
+        ActivatePowerUp(type);
+
+        // الانتظار للمدة المحددة
         yield return new WaitForSeconds(powerUpDuration);
 
-        // انتهاء القدرة
-        ResetToNormal();
-        currentPowerUpCoroutine = null;
+        // إلغاء القدرة
+        DeactivatePowerUp(type);
 
+        activePowerUpCoroutine = null;
         Debug.Log($"⏰ انتهت قدرة: {type}");
     }
 
-    IEnumerator BlueLaserRoutine()
+    void ActivatePowerUp(PowerUpType type)
+    {
+        switch (type)
+        {
+            case PowerUpType.BlueLaser:
+                ActivateBlueLaser();
+                break;
+            case PowerUpType.SpeedBoost:
+                ActivateSpeedBoost();
+                break;
+            case PowerUpType.Shield:
+                ActivateShield();
+                break;
+            case PowerUpType.MultiShot:
+                ActivateMultiShot();
+                break;
+        }
+    }
+
+    void DeactivatePowerUp(PowerUpType type)
+    {
+        switch (type)
+        {
+            case PowerUpType.BlueLaser:
+                DeactivateBlueLaser();
+                break;
+            case PowerUpType.SpeedBoost:
+                DeactivateSpeedBoost();
+                break;
+            case PowerUpType.Shield:
+                DeactivateShield();
+                break;
+            case PowerUpType.MultiShot:
+                DeactivateMultiShot();
+                break;
+        }
+
+        ResetToNormal();
+    }
+
+    void ActivateBlueLaser()
     {
         Debug.Log("🔵 ليزر أزرق مفعل!");
         ChangeShipLight(Color.blue);
 
-        // تغيير ماتيرال الليزر إلى أزرق
-        if (laserPrefab != null && blueLaserMaterial != null)
+        if (laserGun != null && blueLaserPrefab != null)
         {
-            Renderer laserRenderer = laserPrefab.GetComponent<Renderer>();
-            if (laserRenderer != null)
-            {
-                laserRenderer.material = blueLaserMaterial;
-                Debug.Log("✅ تم تغيير لون الليزر إلى أزرق");
-            }
-        }
-        else
-        {
-            Debug.LogWarning("❌ بريفاب الليزر أو الماتيرال الأزرق غير موصول!");
-        }
-
-        yield return new WaitForSeconds(powerUpDuration);
-
-        // إعادة الماتيرال الأصلي للليزر
-        if (laserPrefab != null && originalLaserMaterial != null)
-        {
-            Renderer laserRenderer = laserPrefab.GetComponent<Renderer>();
-            if (laserRenderer != null)
-            {
-                laserRenderer.material = originalLaserMaterial;
-                Debug.Log("🔄 تم إعادة لون الليزر الأصلي");
-            }
+            laserGun.laserPrefab = blueLaserPrefab;
         }
     }
 
-    IEnumerator SpeedBoostRoutine()
+    void DeactivateBlueLaser()
+    {
+        if (laserGun != null && normalLaserPrefab != null)
+        {
+            laserGun.laserPrefab = normalLaserPrefab;
+            Debug.Log("🔄 تم إعادة الليزر العادي");
+        }
+    }
+
+    void ActivateSpeedBoost()
     {
         Debug.Log("⚡ سرعة الحركة مفعلة!");
         ChangeShipLight(Color.yellow);
 
-        float originalSpeed = spaceshipMovement.speed;
-
-        // زيادة السرعة
         if (spaceshipMovement != null)
         {
-            spaceshipMovement.speed *= 2f;
-            Debug.Log($"🚀 السرعة: {originalSpeed} → {spaceshipMovement.speed}");
-        }
-
-        yield return new WaitForSeconds(powerUpDuration);
-
-        // إعادة السرعة الأصلية
-        if (spaceshipMovement != null)
-        {
-            spaceshipMovement.speed = originalSpeed;
-            Debug.Log($"🔄 العودة للسرعة: {spaceshipMovement.speed}");
+            spaceshipMovement.speed = originalSpeed * 2f;
         }
     }
 
-    IEnumerator ShieldRoutine()
+    void DeactivateSpeedBoost()
+    {
+        if (spaceshipMovement != null)
+        {
+            spaceshipMovement.speed = originalSpeed;
+            Debug.Log("🔄 تم إعادة السرعة الأصلية");
+        }
+    }
+
+    void ActivateShield()
     {
         Debug.Log("🛡️ الدرع مفعل!");
         ChangeShipLight(Color.red);
 
-        // إنشاء الدرع
         if (shieldPrefab != null)
         {
             currentShield = Instantiate(shieldPrefab, transform.position, Quaternion.identity);
             currentShield.transform.SetParent(transform);
             currentShield.transform.localPosition = Vector3.zero;
-
-            Debug.Log("✅ تم إنشاء الدرع");
         }
-        else
-        {
-            Debug.LogWarning("❌ بريفاب الدرع غير موصول!");
-        }
+    }
 
-        yield return new WaitForSeconds(powerUpDuration);
-
-        // إزالة الدرع بعد انتهاء المدة
+    void DeactivateShield()
+    {
         if (currentShield != null)
         {
             Destroy(currentShield);
@@ -223,29 +253,36 @@ public class PowerUpSystem : MonoBehaviour
         }
     }
 
-    IEnumerator MultiShotRoutine()
+    void ActivateMultiShot()
     {
         Debug.Log("💜 Multi-Shot مفعل!");
         ChangeShipLight(new Color(0.8f, 0.2f, 0.8f));
 
-        // تفعيل نظام الإطلاق المتعدد
         if (laserGun != null)
         {
-            var originalFirePoints = laserGun.firePoints;
-            var originalFiringMode = laserGun.firingMode;
+            // استخدام بريفاب الإطلاق المتعدد إذا متوفر
+            if (multiShotLaserPrefab != null)
+            {
+                laserGun.laserPrefab = multiShotLaserPrefab;
+            }
 
+            // تفعيل نقاط الإطلاق المتعددة
             laserGun.firePoints = CreateMultiShotFirePoints();
             laserGun.firingMode = SimpleLaserGun.FiringMode.Simultaneous;
+        }
+    }
 
-            Debug.Log("🔫 تفعيل الإطلاق المتعدد - 5 مسارات");
-
-            yield return new WaitForSeconds(powerUpDuration);
-
+    void DeactivateMultiShot()
+    {
+        if (laserGun != null)
+        {
+            // إعادة الإعدادات الأصلية بشكل مؤكد
             laserGun.firePoints = originalFirePoints;
             laserGun.firingMode = originalFiringMode;
-            CleanupMultiShotFirePoints();
+            laserGun.laserPrefab = originalLaserPrefab;
 
-            Debug.Log("🔄 العودة للإطلاق العادي");
+            CleanupMultiShotFirePoints();
+            Debug.Log("🔄 تم إعادة إعدادات الإطلاق العادية");
         }
     }
 
@@ -291,17 +328,9 @@ public class PowerUpSystem : MonoBehaviour
 
     void ResetToNormal()
     {
-        // إطفاء النور
         if (shipLight != null)
         {
             shipLight.enabled = false;
-        }
-
-        // التأكد من إزالة الدرع
-        if (currentShield != null)
-        {
-            Destroy(currentShield);
-            currentShield = null;
         }
     }
 }

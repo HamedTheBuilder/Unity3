@@ -7922,6 +7922,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1505817094}
+  - component: {fileID: 1505817095}
   m_Layer: 0
   m_Name: powerupmanager
   m_TagString: Untagged
@@ -7945,6 +7946,32 @@ Transform:
   - {fileID: 746397651}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1505817095
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1505817093}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5913a3bfc5659ab41996391a2aa337c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  blueLaserCountText: {fileID: 640646532}
+  speedBoostCountText: {fileID: 1870659009}
+  shieldCountText: {fileID: 1431234771}
+  multiShotCountText: {fileID: 2109877743}
+  blueLaserIcon: {fileID: 0}
+  speedBoostIcon: {fileID: 0}
+  shieldIcon: {fileID: 0}
+  multiShotIcon: {fileID: 0}
+  blueLaserPowerUpPrefab: {fileID: 2678140534373741129, guid: b155145fa8668b44ebd9e33c43658126, type: 3}
+  speedBoostPowerUpPrefab: {fileID: 2593319772422670158, guid: c9f8313e5f2c76a4ea5adc2575d90e50, type: 3}
+  shieldPowerUpPrefab: {fileID: 2678140534373741129, guid: 2f2af3de6b1bb074faa14a846fe95b4c, type: 3}
+  multiShotPowerUpPrefab: {fileID: 2593319772422670158, guid: ee1e8286241091140a3f677c9ed545bf, type: 3}
+  activeColor: {r: 1, g: 0, b: 0, a: 1}
+  inactiveColor: {r: 0, g: 0.28581238, b: 1, a: 0.3}
 --- !u!1 &1572163839
 GameObject:
   m_ObjectHideFlags: 0
@@ -8764,13 +8791,13 @@ MonoBehaviour:
   - {fileID: 8067922084765152307, guid: cad41006eab47884d8b37d1545200cfb, type: 3}
   - {fileID: 866341394287901398, guid: 19335be737be9494d8ca9673bc212219, type: 3}
   startSpawnInterval: 1
-  minSpawnInterval: 0.2
+  minSpawnInterval: 0.4
   asteroidSpeed: 8
   spawnDistanceFromShip: 50
   destroyDistanceBehindShip: 10
-  timeToMaxDifficulty: 45
-  maxAsteroidSpeed: 50
-  spawnRateMultiplier: 1.5
+  timeToMaxDifficulty: 30
+  maxAsteroidSpeed: 40
+  difficultyIncreaseRate: 0.1
   minSize: 2
   maxSize: 3
   asteroidHealth: 05000000050000000f000000
@@ -8778,14 +8805,14 @@ MonoBehaviour:
   - 1
   - 80
   - 80
-  powerUpPrefabs:
-  - {fileID: 2678140534373741129, guid: b155145fa8668b44ebd9e33c43658126, type: 3}
-  - {fileID: 2678140534373741129, guid: 2f2af3de6b1bb074faa14a846fe95b4c, type: 3}
-  - {fileID: 2593319772422670158, guid: ee1e8286241091140a3f677c9ed545bf, type: 3}
-  - {fileID: 2593319772422670158, guid: c9f8313e5f2c76a4ea5adc2575d90e50, type: 3}
-  powerUpSpawnChance: 0.1
+  blueLaserPowerUpPrefab: {fileID: 2678140534373741129, guid: b155145fa8668b44ebd9e33c43658126, type: 3}
+  speedBoostPowerUpPrefab: {fileID: 2593319772422670158, guid: c9f8313e5f2c76a4ea5adc2575d90e50, type: 3}
+  shieldPowerUpPrefab: {fileID: 2678140534373741129, guid: 2f2af3de6b1bb074faa14a846fe95b4c, type: 3}
+  multiShotPowerUpPrefab: {fileID: 2593319772422670158, guid: ee1e8286241091140a3f677c9ed545bf, type: 3}
+  powerUpSpawnChance: 0.3
   powerUpSpeed: 10
   spaceship: {fileID: 1900874726}
+  powerUpManager: {fileID: 1505817095}
 --- !u!114 &1900874731
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8835,13 +8862,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 854a4e405058b7d469841587350995d1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  powerUpManager: {fileID: 1900874738}
+  powerUpManager: {fileID: 1505817095}
   powerUpDuration: 6
   shipLight: {fileID: 328210407}
   shieldPrefab: {fileID: 5700336983774466501, guid: 2b45b8bf07d1051419443295d5f4915c, type: 3}
-  laserPrefab: {fileID: 0}
-  blueLaserMaterial: {fileID: 0}
-  laserGun: {fileID: 0}
+  normalLaserPrefab: {fileID: 3032203923582822322, guid: f9fa08fa5c87a234f9b73e4ccb69b718, type: 3}
+  blueLaserPrefab: {fileID: 3032203923582822322, guid: c27efe7d12a1b1f468f31010592c712e, type: 3}
+  multiShotLaserPrefab: {fileID: 3032203923582822322, guid: 4d278cffa39a86c4cbb1b175ed2ece59, type: 3}
 --- !u!136 &1900874736
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -8878,28 +8905,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   powerUpSystem: {fileID: 1900874735}
---- !u!114 &1900874738
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1900874723}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5913a3bfc5659ab41996391a2aa337c8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  blueLaserCountText: {fileID: 640646532}
-  speedBoostCountText: {fileID: 0}
-  shieldCountText: {fileID: 0}
-  multiShotCountText: {fileID: 0}
-  blueLaserIcon: {fileID: 0}
-  speedBoostIcon: {fileID: 0}
-  shieldIcon: {fileID: 0}
-  multiShotIcon: {fileID: 0}
-  activeColor: {r: 1, g: 0, b: 0, a: 1}
-  inactiveColor: {r: 0, g: 0.28581238, b: 1, a: 0.3}
 --- !u!1 &1983096046
 GameObject:
   m_ObjectHideFlags: 0
@@ -9067,6 +9072,9 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 1513457872104334152, guid: 0d6d0fdfbc12aa54b9e3c673eabb5878, type: 3}
       insertIndex: -1
+      addedObject: {fileID: 1900874736}
+    - targetCorrespondingSourceObject: {fileID: 1513457872104334152, guid: 0d6d0fdfbc12aa54b9e3c673eabb5878, type: 3}
+      insertIndex: -1
       addedObject: {fileID: 1900874727}
     - targetCorrespondingSourceObject: {fileID: 1513457872104334152, guid: 0d6d0fdfbc12aa54b9e3c673eabb5878, type: 3}
       insertIndex: -1
@@ -9082,13 +9090,7 @@ PrefabInstance:
       addedObject: {fileID: 1900874734}
     - targetCorrespondingSourceObject: {fileID: 1513457872104334152, guid: 0d6d0fdfbc12aa54b9e3c673eabb5878, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1900874736}
-    - targetCorrespondingSourceObject: {fileID: 1513457872104334152, guid: 0d6d0fdfbc12aa54b9e3c673eabb5878, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 1900874737}
-    - targetCorrespondingSourceObject: {fileID: 1513457872104334152, guid: 0d6d0fdfbc12aa54b9e3c673eabb5878, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1900874738}
   m_SourcePrefab: {fileID: 100100000, guid: 0d6d0fdfbc12aa54b9e3c673eabb5878, type: 3}
 --- !u!1 &2109877741
 GameObject:

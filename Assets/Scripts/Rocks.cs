@@ -10,15 +10,18 @@ public class AsteroidSpawner : MonoBehaviour
     public float startSpawnInterval = 1.0f;
     public float minSpawnInterval = 0.2f;
     public float asteroidSpeed = 8f;
-    public float spawnDistanceFromShip = 50f;
+    public float spawnDistanceFromShip = 20f;
     public float destroyDistanceBehindShip = 10f;
 
     [Header("Difficulty Progression")]
     public float timeToMaxDifficulty = 45f;
     public float maxAsteroidSpeed = 15f;
+    public float difficultyIncreaseRate = 0.1f;
 
-    [Header("Spawn Rate Increase")]
-    public float spawnRateMultiplier = 1.5f; // معدل زيادة الريسباون
+    [Header("Asteroid Count Progression")]
+    public int startAsteroidCount = 1;
+    public int maxAsteroidCount = 5;
+    public float timeToMaxAsteroidCount = 60f;
 
     [Header("Asteroid Properties")]
     public float minSize = 20f;
@@ -28,20 +31,36 @@ public class AsteroidSpawner : MonoBehaviour
     [Header("Mesh Size Compensation")]
     public float[] meshSizeCompensation = new float[] { 1f, 1f, 1f };
 
+    [Header("Asteroid Movement Settings - NEW")]
+    [Range(0f, 1f)]
+    public float chanceToMoveTowardsPlayer = 0.5f; // 50% فرصة للتحرك تجاه اللاعب
+
     [Header("Power Up Settings")]
-    public GameObject[] powerUpPrefabs;
+    public GameObject blueLaserPowerUpPrefab;
+    public GameObject speedBoostPowerUpPrefab;
+    public GameObject shieldPowerUpPrefab;
+    public GameObject multiShotPowerUpPrefab;
+
+    [Header("Power Up Spawn Chance")]
     public float powerUpSpawnChance = 0.2f;
-    public float powerUpSpeed = 5f; // ثابتة لا تتغير
+    public float powerUpSpeed = 3f;
 
     [Header("References")]
     public Transform spaceship;
+    public PowerUpManager powerUpManager;
 
     private Camera mainCamera;
     private bool isSpawning = true;
     private float currentSpawnInterval;
     private float currentAsteroidSpeed;
+    private int currentAsteroidCount;
     private float gameTime = 0f;
     private float difficultyTimer = 0f;
+
+    private float screenLeft, screenRight, screenTop, screenBottom;
+    private float spawnZPosition;
+
+    private GameObject[] powerUpPrefabsArray;
 
     private void Start()
     {
@@ -52,16 +71,34 @@ public class AsteroidSpawner : MonoBehaviour
             spaceship = GameObject.FindGameObjectWithTag("Player").transform;
         }
 
+        InitializePowerUpArray();
+        CalculateScreenBounds();
+
         currentSpawnInterval = startSpawnInterval;
         currentAsteroidSpeed = asteroidSpeed;
+        currentAsteroidCount = startAsteroidCount;
+        spawnZPosition = spaceship.position.z + spawnDistanceFromShip;
 
         StartCoroutine(SpawnAsteroidsRoutine());
+    }
+
+    void InitializePowerUpArray()
+    {
+        powerUpPrefabsArray = new GameObject[]
+        {
+            blueLaserPowerUpPrefab,
+            speedBoostPowerUpPrefab,
+            shieldPowerUpPrefab,
+            multiShotPowerUpPrefab
+        };
     }
 
     void Update()
     {
         gameTime += Time.deltaTime;
         difficultyTimer += Time.deltaTime;
+
+        CalculateScreenBounds();
 
         if (difficultyTimer >= 1.0f)
         {
@@ -70,49 +107,56 @@ public class AsteroidSpawner : MonoBehaviour
         }
     }
 
+    void CalculateScreenBounds()
+    {
+        if (mainCamera == null) return;
+
+        Vector3 bottomLeft = mainCamera.ViewportToWorldPoint(new Vector3(0, 0, Mathf.Abs(mainCamera.transform.position.z - spaceship.position.z) + spawnDistanceFromShip));
+        Vector3 topRight = mainCamera.ViewportToWorldPoint(new Vector3(1, 1, Mathf.Abs(mainCamera.transform.position.z - spaceship.position.z) + spawnDistanceFromShip));
+
+        screenLeft = bottomLeft.x;
+        screenRight = topRight.x;
+        screenTop = topRight.y;
+        screenBottom = bottomLeft.y;
+    }
+
     void IncreaseDifficulty()
     {
-        // زيادة سرعة الكويكبات فقط
         if (currentAsteroidSpeed < maxAsteroidSpeed)
         {
             currentAsteroidSpeed += (maxAsteroidSpeed - asteroidSpeed) / timeToMaxDifficulty;
             currentAsteroidSpeed = Mathf.Min(currentAsteroidSpeed, maxAsteroidSpeed);
         }
 
-        // تقليل وقت السباون (زيادة الريسباون) بناءً على السرعة
-        UpdateSpawnRateBasedOnSpeed();
-
-        // زيادة فرصة الكويكبات الكبيرة بعد وقت معين
-        if (gameTime > 30f)
+        if (currentSpawnInterval > minSpawnInterval)
         {
-            if (Random.value < 0.3f)
-            {
-                SpawnExtraAsteroid();
-            }
+            float intervalReduction = (startSpawnInterval - minSpawnInterval) / timeToMaxDifficulty;
+            currentSpawnInterval -= intervalReduction;
+            currentSpawnInterval = Mathf.Max(currentSpawnInterval, minSpawnInterval);
         }
 
-        Debug.Log($"⏰ الوقت: {gameTime:F0}ث | 🚀 السرعة: {currentAsteroidSpeed:F1} | ⏱️ السباون: {currentSpawnInterval:F2}");
-    }
+        if (currentAsteroidCount < maxAsteroidCount)
+        {
+            float countIncrease = (float)(maxAsteroidCount - startAsteroidCount) / timeToMaxAsteroidCount;
+            currentAsteroidCount = startAsteroidCount + Mathf.FloorToInt(gameTime * countIncrease);
+            currentAsteroidCount = Mathf.Min(currentAsteroidCount, maxAsteroidCount);
+        }
 
-    void UpdateSpawnRateBasedOnSpeed()
-    {
-        // حساب نسبة السرعة الحالية من السرعة القصوى
-        float speedRatio = (currentAsteroidSpeed - asteroidSpeed) / (maxAsteroidSpeed - asteroidSpeed);
+        if (gameTime > 30f && Random.value < 0.3f)
+        {
+            SpawnExtraAsteroid();
+        }
 
-        // تطبيق المضاعف على معدل السباون
-        float targetSpawnInterval = startSpawnInterval - (startSpawnInterval - minSpawnInterval) * speedRatio * spawnRateMultiplier;
-
-        currentSpawnInterval = Mathf.Max(targetSpawnInterval, minSpawnInterval);
+        Debug.Log($"⏰ الوقت: {gameTime:F0}ث | 🚀 السرعة: {currentAsteroidSpeed:F1} | ⏱️ السباون: {currentSpawnInterval:F2} | 🔥 العدد: {currentAsteroidCount}");
     }
 
     IEnumerator SpawnAsteroidsRoutine()
     {
         while (isSpawning)
         {
-            SpawnAsteroid();
+            SpawnAsteroidGroup();
 
-            // القدرات تظهر بنفس المعدل دائماً
-            if (Random.value < powerUpSpawnChance && powerUpPrefabs != null && powerUpPrefabs.Length > 0)
+            if (Random.value < powerUpSpawnChance && powerUpPrefabsArray != null && powerUpPrefabsArray.Length > 0)
             {
                 SpawnRandomPowerUp();
             }
@@ -121,15 +165,25 @@ public class AsteroidSpawner : MonoBehaviour
         }
     }
 
-    void SpawnAsteroid()
+    void SpawnAsteroidGroup()
     {
-        if (asteroidPrefabs == null || asteroidPrefabs.Length == 0)
-        {
-            Debug.LogWarning("No asteroid prefabs assigned!");
-            return;
-        }
+        if (asteroidPrefabs == null || asteroidPrefabs.Length == 0) return;
 
-        Vector3 spawnPosition = GetRandomEdgePosition();
+        for (int i = 0; i < currentAsteroidCount; i++)
+        {
+            StartCoroutine(SpawnSingleAsteroidWithDelay(i * 0.1f));
+        }
+    }
+
+    IEnumerator SpawnSingleAsteroidWithDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        SpawnSingleAsteroid();
+    }
+
+    void SpawnSingleAsteroid()
+    {
+        Vector3 spawnPosition = GetRandomPositionWithinScreen();
         int randomIndex = GetWeightedAsteroidIndex();
         GameObject selectedAsteroid = asteroidPrefabs[randomIndex];
 
@@ -139,15 +193,28 @@ public class AsteroidSpawner : MonoBehaviour
 
         SetupAsteroidSize(asteroid, randomIndex);
         SetupAsteroidHealth(asteroid, randomIndex);
-        SetupAsteroidPhysics(asteroid);
+
+        // تحديد اتجاه الحركة - NEW
+        bool moveTowardsPlayer = Random.value < chanceToMoveTowardsPlayer;
+        SetupAsteroidPhysics(asteroid, moveTowardsPlayer);
+
         StartCoroutine(DestroyAsteroidAfterPassing(asteroid));
+
+        Debug.Log($"🌌 كويكب: {(moveTowardsPlayer ? "باتجاهك 🎯" : "عشوائي 🔀")}");
+    }
+
+    Vector3 GetRandomPositionWithinScreen()
+    {
+        float randomX = Random.Range(screenLeft + 1f, screenRight - 1f);
+        float randomY = Random.Range(screenBottom + 1f, screenTop - 1f);
+        return new Vector3(randomX, randomY, spawnZPosition);
     }
 
     void SpawnExtraAsteroid()
     {
         if (asteroidPrefabs == null || asteroidPrefabs.Length == 0) return;
 
-        Vector3 spawnPosition = GetRandomEdgePosition();
+        Vector3 spawnPosition = GetRandomPositionWithinScreen();
         int randomIndex = Random.Range(0, asteroidPrefabs.Length);
         GameObject selectedAsteroid = asteroidPrefabs[randomIndex];
 
@@ -157,21 +224,21 @@ public class AsteroidSpawner : MonoBehaviour
 
         SetupAsteroidSize(asteroid, randomIndex);
         SetupAsteroidHealth(asteroid, randomIndex);
-        SetupAsteroidPhysics(asteroid);
+
+        // تحديد اتجاه الحركة للكويكب الإضافي - NEW
+        bool moveTowardsPlayer = Random.value < chanceToMoveTowardsPlayer;
+        SetupAsteroidPhysics(asteroid, moveTowardsPlayer);
+
         StartCoroutine(DestroyAsteroidAfterPassing(asteroid));
     }
 
     void SpawnRandomPowerUp()
     {
-        if (powerUpPrefabs == null || powerUpPrefabs.Length == 0)
-        {
-            Debug.LogWarning("No power up prefabs assigned!");
-            return;
-        }
+        if (powerUpPrefabsArray == null || powerUpPrefabsArray.Length == 0) return;
 
-        Vector3 spawnPosition = GetRandomEdgePosition();
-        int randomIndex = Random.Range(0, powerUpPrefabs.Length);
-        GameObject selectedPowerUp = powerUpPrefabs[randomIndex];
+        Vector3 spawnPosition = GetRandomPositionWithinScreen();
+        int randomIndex = Random.Range(0, powerUpPrefabsArray.Length);
+        GameObject selectedPowerUp = powerUpPrefabsArray[randomIndex];
 
         if (selectedPowerUp == null) return;
 
@@ -183,42 +250,54 @@ public class AsteroidSpawner : MonoBehaviour
             powerUpScript = powerUp.AddComponent<PowerUp>();
         }
 
-        // القدرات تتحرك بسرعة ثابتة دائماً
+        PowerUpType powerUpType = GetPowerUpTypeFromPrefab(selectedPowerUp);
+        powerUpScript.powerUpType = powerUpType;
+
         SetupPowerUpPhysics(powerUp);
         StartCoroutine(DestroyPowerUpAfterPassing(powerUp));
 
-        Debug.Log($"🎁 تم إنشاء قدرة: {selectedPowerUp.name}");
+        Debug.Log($"🎁 تم إنشاء قدرة: {GetPowerUpName(powerUpType)}");
+    }
+
+    PowerUpType GetPowerUpTypeFromPrefab(GameObject prefab)
+    {
+        if (prefab == blueLaserPowerUpPrefab) return PowerUpType.BlueLaser;
+        else if (prefab == speedBoostPowerUpPrefab) return PowerUpType.SpeedBoost;
+        else if (prefab == shieldPowerUpPrefab) return PowerUpType.Shield;
+        else if (prefab == multiShotPowerUpPrefab) return PowerUpType.MultiShot;
+        else return PowerUpType.BlueLaser;
+    }
+
+    string GetPowerUpName(PowerUpType type)
+    {
+        switch (type)
+        {
+            case PowerUpType.BlueLaser: return "ليزر أزرق";
+            case PowerUpType.SpeedBoost: return "سرعة";
+            case PowerUpType.Shield: return "درع";
+            case PowerUpType.MultiShot: return "إطلاق متعدد";
+            default: return "قدرة";
+        }
     }
 
     int GetWeightedAsteroidIndex()
     {
         float randomValue = Random.value;
-
-        if (randomValue < 0.5f)
-            return 0;
-        else if (randomValue < 0.8f)
-            return 1;
-        else
-            return 2;
+        if (randomValue < 0.5f) return 0;
+        else if (randomValue < 0.8f) return 1;
+        else return 2;
     }
 
     void SetupPowerUpPhysics(GameObject powerUp)
     {
         Rigidbody rb = powerUp.GetComponent<Rigidbody>();
-        if (rb == null)
-        {
-            rb = powerUp.AddComponent<Rigidbody>();
-        }
+        if (rb == null) rb = powerUp.AddComponent<Rigidbody>();
 
         rb.useGravity = false;
         rb.linearDamping = 0;
 
         Vector3 directionToPlayer = (spaceship.position - powerUp.transform.position).normalized;
-        Vector3 randomOffset = new Vector3(Random.Range(-0.3f, 0.3f), Random.Range(-0.3f, 0.3f), 0);
-        Vector3 finalDirection = (directionToPlayer + randomOffset).normalized;
-
-        // سرعة ثابتة للقدرات
-        rb.linearVelocity = finalDirection * powerUpSpeed;
+        rb.linearVelocity = directionToPlayer * powerUpSpeed;
         rb.angularVelocity = new Vector3(0, 2f, 0);
     }
 
@@ -248,10 +327,7 @@ public class AsteroidSpawner : MonoBehaviour
     void SetupAsteroidHealth(GameObject asteroid, int prefabIndex)
     {
         AsteroidHealth health = asteroid.GetComponent<AsteroidHealth>();
-        if (health == null)
-        {
-            health = asteroid.AddComponent<AsteroidHealth>();
-        }
+        if (health == null) health = asteroid.AddComponent<AsteroidHealth>();
 
         if (prefabIndex < asteroidHealth.Length)
         {
@@ -260,98 +336,40 @@ public class AsteroidSpawner : MonoBehaviour
         }
 
         asteroid.tag = "Asteroid";
-
-        if (asteroid.GetComponent<Collider>() == null)
-        {
-            asteroid.AddComponent<BoxCollider>();
-        }
+        if (asteroid.GetComponent<Collider>() == null) asteroid.AddComponent<BoxCollider>();
     }
 
-    void SetupAsteroidPhysics(GameObject asteroid)
+    // دالة معدلة لفيزياء الكويكبات - NEW
+    void SetupAsteroidPhysics(GameObject asteroid, bool moveTowardsPlayer)
     {
         Rigidbody rb = asteroid.GetComponent<Rigidbody>();
-        if (rb == null)
-        {
-            rb = asteroid.AddComponent<Rigidbody>();
-        }
+        if (rb == null) rb = asteroid.AddComponent<Rigidbody>();
 
         rb.useGravity = false;
         rb.linearDamping = 0;
         rb.angularDamping = 0.5f;
 
         rb.angularVelocity = new Vector3(
-            Random.Range(-1f, 1f),
-            Random.Range(-1f, 1f),
-            Random.Range(-1f, 1f)
-        ) * 2f;
+            Random.Range(-1f, 1f), Random.Range(-1f, 1f), Random.Range(-1f, 1f)) * 2f;
 
-        Vector3 movementDirection = GetMovementDirection();
-        // الكويكبات تستخدم السرعة المتزايدة
+        Vector3 movementDirection;
+
+        if (moveTowardsPlayer)
+        {
+            // 50%: تتحرك مباشرة تجاه اللاعب
+            movementDirection = (spaceship.position - asteroid.transform.position).normalized;
+        }
+        else
+        {
+            // 50%: تتحرك في اتجاهات عشوائية
+            movementDirection = new Vector3(
+                Random.Range(-0.8f, 0.8f),
+                Random.Range(-0.8f, 0.8f),
+                -1f
+            ).normalized;
+        }
+
         rb.linearVelocity = movementDirection * currentAsteroidSpeed;
-    }
-
-    Vector3 GetRandomEdgePosition()
-    {
-        if (mainCamera == null) mainCamera = Camera.main;
-
-        float cameraWidth = GetCameraWidth();
-        float cameraHeight = GetCameraHeight();
-
-        Vector3 spawnPosition = Vector3.zero;
-        int edgeSelection = Random.Range(0, 4);
-
-        switch (edgeSelection)
-        {
-            case 0: spawnPosition = new Vector3(-cameraWidth / 2, Random.Range(-cameraHeight / 2, cameraHeight / 2), 0); break;
-            case 1: spawnPosition = new Vector3(cameraWidth / 2, Random.Range(-cameraHeight / 2, cameraHeight / 2), 0); break;
-            case 2: spawnPosition = new Vector3(Random.Range(-cameraWidth / 2, cameraWidth / 2), cameraHeight / 2, 0); break;
-            case 3: spawnPosition = new Vector3(Random.Range(-cameraWidth / 2, cameraWidth / 2), -cameraHeight / 2, 0); break;
-        }
-
-        Vector3 worldSpawnPosition = mainCamera.transform.TransformPoint(spawnPosition);
-        worldSpawnPosition.z = spaceship.position.z + spawnDistanceFromShip;
-        return worldSpawnPosition;
-    }
-
-    Vector3 GetMovementDirection()
-    {
-        bool moveTowardsShip = Random.value < 0.3f;
-
-        if (moveTowardsShip)
-        {
-            Vector3 directionToShip = (spaceship.position - transform.position).normalized;
-            return new Vector3(directionToShip.x, directionToShip.y, -1).normalized;
-        }
-        else
-        {
-            return new Vector3(Random.Range(-0.5f, 0.5f), Random.Range(-0.8f, -0.2f), -1).normalized;
-        }
-    }
-
-    float GetCameraWidth()
-    {
-        if (mainCamera.orthographic)
-        {
-            return 2f * mainCamera.orthographicSize * mainCamera.aspect;
-        }
-        else
-        {
-            float distance = Mathf.Abs(mainCamera.transform.position.z - spaceship.position.z);
-            return 2.0f * Mathf.Tan(mainCamera.fieldOfView * 0.5f * Mathf.Deg2Rad) * distance * mainCamera.aspect;
-        }
-    }
-
-    float GetCameraHeight()
-    {
-        if (mainCamera.orthographic)
-        {
-            return 2f * mainCamera.orthographicSize;
-        }
-        else
-        {
-            float distance = Mathf.Abs(mainCamera.transform.position.z - spaceship.position.z);
-            return 2.0f * Mathf.Tan(mainCamera.fieldOfView * 0.5f * Mathf.Deg2Rad) * distance;
-        }
     }
 
     IEnumerator DestroyAsteroidAfterPassing(GameObject asteroid)
@@ -387,6 +405,7 @@ public class AsteroidSpawner : MonoBehaviour
     {
         currentSpawnInterval = startSpawnInterval;
         currentAsteroidSpeed = asteroidSpeed;
+        currentAsteroidCount = startAsteroidCount;
         gameTime = 0f;
     }
 }

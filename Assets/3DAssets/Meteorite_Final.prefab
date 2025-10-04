@@ -127,7 +127,7 @@ MonoBehaviour:
   maxHealth: 15
   currentHealth: 0
   destructionEffect: {fileID: 2285261938032630497, guid: a14733370f571db45a25401e51f9e6d0, type: 3}
-  scoreValue: 10
+  scoreValue: 30
   damageColor: {r: 1, g: 0, b: 0, a: 1}
   colorChangeDuration: 0.5
   explosionSound: {fileID: 8300000, guid: 86d3bc3ef3dd0814292b7aad5c5d1569, type: 3}
