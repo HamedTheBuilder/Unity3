@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/MainMenu.unity
     guid: 7c3b6be08349a424499823c057b5f15e
+  - enabled: 1
+    path: Assets/Scenes/lvl1Score.unity
+    guid: c48c8e97e1719634ea32bebb8f1d71b7
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

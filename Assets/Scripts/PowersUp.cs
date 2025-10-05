@@ -26,6 +26,17 @@ public class PowerUp : MonoBehaviour
             {
                 // استخدام النظام الجديد - تفعيل فوري
                 powerSystem.CollectPowerUp(powerUpType);
+
+                // التعديل هنا - إضافة النقاط عند جمع الباور أب
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.PowerUpCollected();
+                }
+                else
+                {
+                    Debug.LogWarning("❌ GameManager.Instance is null");
+                }
+
                 Destroy(gameObject);
             }
             else

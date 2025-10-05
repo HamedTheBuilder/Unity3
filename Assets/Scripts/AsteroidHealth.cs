@@ -1,11 +1,11 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 public class AsteroidHealth : MonoBehaviour
 {
     [Header("Asteroid Health")]
     public int maxHealth = 5;
-    public int currentHealth; // ����� ��� public
+    public int currentHealth; // غيرها إلى public
     public GameObject destructionEffect;
     public int scoreValue = 10;
 
@@ -45,7 +45,7 @@ public class AsteroidHealth : MonoBehaviour
 
         currentHealth -= damage;
 
-        // ����� ��� ������� ��� ������
+        // تغيير لون الكويكب إلى الأحمر
         StartCoroutine(ChangeAsteroidColor());
 
         if (currentHealth <= 0)
@@ -82,11 +82,29 @@ public class AsteroidHealth : MonoBehaviour
             Instantiate(destructionEffect, transform.position, Quaternion.identity);
         }
 
+        // التعديل هنا - استخدام AsteroidDestroyed بدلاً من AddScore مباشرة
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.AddScore(scoreValue);
+            GameManager.Instance.AsteroidDestroyed();
+        }
+        else
+        {
+            Debug.LogWarning("❌ GameManager.Instance is null");
         }
 
         Destroy(gameObject);
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Laser"))
+        {
+            LaserProjectile laser = other.GetComponent<LaserProjectile>();
+            if (laser != null)
+            {
+                TakeDamage(laser.damage);
+                Destroy(other.gameObject);
+            }
+        }
     }
 }

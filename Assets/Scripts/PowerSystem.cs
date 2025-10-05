@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PowerUpSystem : MonoBehaviour
 {
@@ -21,7 +22,14 @@ public class PowerUpSystem : MonoBehaviour
     public GameObject blueLaserPrefab;
     public GameObject multiShotLaserPrefab;
 
-    // حفظ الإعدادات الأصلية
+    [Header("Score Settings - NEW")]
+    public int powerUpScore = 10; // النقاط اللي تاخذها من كل قدرة
+
+    // تتبع القدرات النشطة
+    private Dictionary<PowerUpType, Coroutine> activePowerUps = new Dictionary<PowerUpType, Coroutine>();
+    private Dictionary<PowerUpType, float> powerUpEndTimes = new Dictionary<PowerUpType, float>();
+
+    // الإعدادات الأصلية
     private Transform[] originalFirePoints;
     private SimpleLaserGun.FiringMode originalFiringMode;
     private GameObject originalLaserPrefab;
@@ -29,8 +37,6 @@ public class PowerUpSystem : MonoBehaviour
 
     private SimpleLaserGun laserGun;
     private SpaceshipMovement spaceshipMovement;
-    private Coroutine activePowerUpCoroutine;
-    private PowerUpType currentActivePowerUp = PowerUpType.BlueLaser;
 
     void Start()
     {
@@ -55,12 +61,17 @@ public class PowerUpSystem : MonoBehaviour
             shipLight.enabled = false;
         }
 
-        Debug.Log("✅ نظام القدرات جاهز - الإعدادات الأصلية محفوظة");
+        // تهيئة القواميس
+        activePowerUps.Clear();
+        powerUpEndTimes.Clear();
+
+        Debug.Log("✅ نظام القدرات جاهز");
     }
 
     void Update()
     {
         HandlePowerUpInput();
+        UpdatePowerUpTimers();
     }
 
     void HandlePowerUpInput()
@@ -88,7 +99,7 @@ public class PowerUpSystem : MonoBehaviour
         if (powerUpManager != null && powerUpManager.UsePowerUp(type))
         {
             Debug.Log($"🎯 استخدام قدرة: {type}");
-            StartPowerUp(type);
+            ActivatePowerUp(type);
         }
         else
         {
@@ -105,66 +116,86 @@ public class PowerUpSystem : MonoBehaviour
             powerUpManager.AddPowerUp(type);
             Debug.Log($"✅ تمت إضافة {type} إلى المخزون - العدد: {powerUpManager.GetPowerUpCount(type)}");
 
-            // تفعيل فوري عند الجمع
-            if (CanAutoActivate(type))
-            {
-                Debug.Log($"⚡ تفعيل فوري للقدرة: {type}");
-                StartPowerUp(type);
-            }
+            // إضافة نقاط عند جمع القدرة - NEW
+            AddPowerUpScore(type);
         }
     }
 
-    // تحديد أي القدرات يتم تفعيلها فورياً عند الجمع
-    bool CanAutoActivate(PowerUpType type)
+    // دالة جديدة لإضافة النقاط عند جمع القدرة - NEW
+    void AddPowerUpScore(PowerUpType type)
     {
-        // هنا يمكنك تحديد أي القدرات تتفعل فوراً
-        // حالياً جميع القدرات تتفعل فوراً عند الجمع
-        return true;
-    }
-
-    void StartPowerUp(PowerUpType type)
-    {
-        // إيقاف القدرة السابقة إذا كانت نشطة
-        if (activePowerUpCoroutine != null)
+        if (GameManager.Instance != null)
         {
-            StopCoroutine(activePowerUpCoroutine);
-            ResetToNormal();
+            GameManager.Instance.AddScore(powerUpScore);
+            Debug.Log($"💰 +{powerUpScore} نقطة لجمع {GetPowerUpName(type)}");
         }
-
-        currentActivePowerUp = type;
-        activePowerUpCoroutine = StartCoroutine(PowerUpRoutine(type));
+        else
+        {
+            Debug.LogWarning("❌ GameManager غير موجود لإضافة النقاط");
+        }
     }
 
-    IEnumerator PowerUpRoutine(PowerUpType type)
+    // دالة مساعدة للحصول على اسم القدرة - NEW
+    string GetPowerUpName(PowerUpType type)
     {
-        // تفعيل القدرة
-        ActivatePowerUp(type);
-
-        // الانتظار للمدة المحددة
-        yield return new WaitForSeconds(powerUpDuration);
-
-        // إلغاء القدرة
-        DeactivatePowerUp(type);
-
-        activePowerUpCoroutine = null;
-        Debug.Log($"⏰ انتهت قدرة: {type}");
+        switch (type)
+        {
+            case PowerUpType.BlueLaser: return "ليزر أزرق";
+            case PowerUpType.SpeedBoost: return "سرعة";
+            case PowerUpType.Shield: return "درع";
+            case PowerUpType.MultiShot: return "إطلاق متعدد";
+            default: return "قدرة";
+        }
     }
 
     void ActivatePowerUp(PowerUpType type)
     {
+        // إلغاء القدرة السابقة إذا كانت نشطة
+        if (activePowerUps.ContainsKey(type))
+        {
+            StopCoroutine(activePowerUps[type]);
+            activePowerUps.Remove(type);
+            DeactivatePowerUp(type);
+        }
+
+        // تفعيل القدرة الجديدة
+        Coroutine powerUpCoroutine = StartCoroutine(PowerUpRoutine(type));
+        activePowerUps[type] = powerUpCoroutine;
+        powerUpEndTimes[type] = Time.time + powerUpDuration;
+
+        // تطبيق تأثيرات القدرة
+        ApplyPowerUpEffects(type);
+    }
+
+    IEnumerator PowerUpRoutine(PowerUpType type)
+    {
+        Debug.Log($"⏳ تفعيل قدرة: {type} لمدة {powerUpDuration} ثانية");
+
+        yield return new WaitForSeconds(powerUpDuration);
+
+        // انتهاء القدرة
+        DeactivatePowerUp(type);
+        activePowerUps.Remove(type);
+        powerUpEndTimes.Remove(type);
+
+        Debug.Log($"⏰ انتهت قدرة: {type}");
+    }
+
+    void ApplyPowerUpEffects(PowerUpType type)
+    {
         switch (type)
         {
             case PowerUpType.BlueLaser:
-                ActivateBlueLaser();
+                ApplyBlueLaser();
                 break;
             case PowerUpType.SpeedBoost:
-                ActivateSpeedBoost();
+                ApplySpeedBoost();
                 break;
             case PowerUpType.Shield:
-                ActivateShield();
+                ApplyShield();
                 break;
             case PowerUpType.MultiShot:
-                ActivateMultiShot();
+                ApplyMultiShot();
                 break;
         }
     }
@@ -174,23 +205,53 @@ public class PowerUpSystem : MonoBehaviour
         switch (type)
         {
             case PowerUpType.BlueLaser:
-                DeactivateBlueLaser();
+                RemoveBlueLaser();
                 break;
             case PowerUpType.SpeedBoost:
-                DeactivateSpeedBoost();
+                RemoveSpeedBoost();
                 break;
             case PowerUpType.Shield:
-                DeactivateShield();
+                RemoveShield();
                 break;
             case PowerUpType.MultiShot:
-                DeactivateMultiShot();
+                RemoveMultiShot();
                 break;
         }
 
-        ResetToNormal();
+        // إعادة الضوء إلى وضعه الطبيعي إذا لم تكن هناك قدرات نشطة
+        if (activePowerUps.Count == 0 && shipLight != null)
+        {
+            shipLight.enabled = false;
+        }
     }
 
-    void ActivateBlueLaser()
+    void UpdatePowerUpTimers()
+    {
+        List<PowerUpType> expiredPowerUps = new List<PowerUpType>();
+
+        foreach (var kvp in powerUpEndTimes)
+        {
+            if (Time.time >= kvp.Value)
+            {
+                expiredPowerUps.Add(kvp.Key);
+            }
+        }
+
+        foreach (var type in expiredPowerUps)
+        {
+            if (activePowerUps.ContainsKey(type))
+            {
+                StopCoroutine(activePowerUps[type]);
+                activePowerUps.Remove(type);
+            }
+            powerUpEndTimes.Remove(type);
+            DeactivatePowerUp(type);
+            Debug.Log($"🕒 انتهت قدرة: {type} (تلقائي)");
+        }
+    }
+
+    // دوال التطبيق والإلغاء لكل قدرة
+    void ApplyBlueLaser()
     {
         Debug.Log("🔵 ليزر أزرق مفعل!");
         ChangeShipLight(Color.blue);
@@ -201,7 +262,7 @@ public class PowerUpSystem : MonoBehaviour
         }
     }
 
-    void DeactivateBlueLaser()
+    void RemoveBlueLaser()
     {
         if (laserGun != null && normalLaserPrefab != null)
         {
@@ -210,7 +271,7 @@ public class PowerUpSystem : MonoBehaviour
         }
     }
 
-    void ActivateSpeedBoost()
+    void ApplySpeedBoost()
     {
         Debug.Log("⚡ سرعة الحركة مفعلة!");
         ChangeShipLight(Color.yellow);
@@ -221,7 +282,7 @@ public class PowerUpSystem : MonoBehaviour
         }
     }
 
-    void DeactivateSpeedBoost()
+    void RemoveSpeedBoost()
     {
         if (spaceshipMovement != null)
         {
@@ -230,12 +291,12 @@ public class PowerUpSystem : MonoBehaviour
         }
     }
 
-    void ActivateShield()
+    void ApplyShield()
     {
         Debug.Log("🛡️ الدرع مفعل!");
         ChangeShipLight(Color.red);
 
-        if (shieldPrefab != null)
+        if (shieldPrefab != null && currentShield == null)
         {
             currentShield = Instantiate(shieldPrefab, transform.position, Quaternion.identity);
             currentShield.transform.SetParent(transform);
@@ -243,7 +304,7 @@ public class PowerUpSystem : MonoBehaviour
         }
     }
 
-    void DeactivateShield()
+    void RemoveShield()
     {
         if (currentShield != null)
         {
@@ -253,30 +314,27 @@ public class PowerUpSystem : MonoBehaviour
         }
     }
 
-    void ActivateMultiShot()
+    void ApplyMultiShot()
     {
         Debug.Log("💜 Multi-Shot مفعل!");
         ChangeShipLight(new Color(0.8f, 0.2f, 0.8f));
 
         if (laserGun != null)
         {
-            // استخدام بريفاب الإطلاق المتعدد إذا متوفر
             if (multiShotLaserPrefab != null)
             {
                 laserGun.laserPrefab = multiShotLaserPrefab;
             }
 
-            // تفعيل نقاط الإطلاق المتعددة
             laserGun.firePoints = CreateMultiShotFirePoints();
             laserGun.firingMode = SimpleLaserGun.FiringMode.Simultaneous;
         }
     }
 
-    void DeactivateMultiShot()
+    void RemoveMultiShot()
     {
         if (laserGun != null)
         {
-            // إعادة الإعدادات الأصلية بشكل مؤكد
             laserGun.firePoints = originalFirePoints;
             laserGun.firingMode = originalFiringMode;
             laserGun.laserPrefab = originalLaserPrefab;
@@ -326,11 +384,47 @@ public class PowerUpSystem : MonoBehaviour
         }
     }
 
-    void ResetToNormal()
+    // دالة جديدة: إلغاء جميع القدرات
+    public void DeactivateAllPowerUps()
     {
+        Debug.Log("🗑️ إلغاء جميع القدرات النشطة");
+
+        // إيقاف جميع الكوروتينات
+        foreach (var coroutine in activePowerUps.Values)
+        {
+            if (coroutine != null)
+            {
+                StopCoroutine(coroutine);
+            }
+        }
+
+        // إلغاء جميع تأثيرات القدرات
+        RemoveBlueLaser();
+        RemoveSpeedBoost();
+        RemoveShield();
+        RemoveMultiShot();
+
+        // مسح القواميس
+        activePowerUps.Clear();
+        powerUpEndTimes.Clear();
+
+        // إطفاء ضوء السفينة
         if (shipLight != null)
         {
             shipLight.enabled = false;
+        }
+
+        Debug.Log("✅ تم إلغاء جميع القدرات بنجاح");
+    }
+
+    // دالة للمساعدة في عرض القدرات النشطة
+    public void PrintActivePowerUps()
+    {
+        Debug.Log("📊 القدرات النشطة:");
+        foreach (var type in activePowerUps.Keys)
+        {
+            float timeLeft = powerUpEndTimes[type] - Time.time;
+            Debug.Log($"- {type}: {timeLeft:F1} ثانية متبقية");
         }
     }
 }
