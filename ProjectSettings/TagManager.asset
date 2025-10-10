@@ -7,6 +7,14 @@ TagManager:
   - Laser
   - Asteroid
   - CinemachineTarget
+  - Ground
+  - CoinUI
+  - Enemy
+  - 'BreakableBox '
+  - Coin
+  - 'DeathZone '
+  - 'Checkpoint '
+  - DeathZone
   layers:
   - Default
   - TransparentFX

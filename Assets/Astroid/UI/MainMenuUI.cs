@@ -1,0 +1,244 @@
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
+
+public class MenuManager : MonoBehaviour
+{
+    [Header("Levels Canvas Settings")]
+    public GameObject levelsCanvas;
+    public Button[] levelButtons;
+    public RawImage levelPreviewImage;
+
+    [Header("Level Preview Textures")]
+    public Texture[] levelPreviewTextures;
+    public Texture defaultPreviewTexture;
+
+    [Header("Level Scenes")]
+    public string[] levelSceneNames = new string[4] { "Astroid 1", "Astroid 2", "Astroid 3", "Astroid 4" };
+
+    [Header("Object Visibility Settings")]
+    public GameObject objectToHide; // «·√Ê»ÃÌﬂ  «·–Ì  —Ìœ ≈Œ›«¡Â ⁄‰œ › Õ «·„” ÊÌ« 
+
+    private int currentHoveredLevel = -1;
+    private bool wasObjectActive; // · Œ“Ì‰ Õ«·… «·√Ê»ÃÌﬂ  ﬁ»· «·≈Œ›«¡
+
+    void Start()
+    {
+        // ≈Œ›«¡ ﬂ«‰›” «·„” ÊÌ«  ⁄‰œ »œ«Ì… «··⁄»…
+        if (levelsCanvas != null)
+            levelsCanvas.SetActive(false);
+
+        //  ⁄ÌÌ‰ «·’Ê—… «·«› —«÷Ì…
+        SetDefaultPreview();
+
+        //  ›⁄Ì· Ã„Ì⁄ «·√“—«— (Ì„ﬂ‰  ⁄œÌ·Â« Õ”» «·„” ÊÌ«  «·„ﬂ „·…)
+        EnableLevelButtons();
+    }
+
+    //  ›⁄Ì· «·√“—«— Õ”» «· ﬁœ„ ›Ì «··⁄»…
+    private void EnableLevelButtons()
+    {
+        for (int i = 0; i < levelButtons.Length; i++)
+        {
+            if (levelButtons[i] != null)
+            {
+                // Â‰« Ì„ﬂ‰ ≈÷«›… ‘—ÿ ≈–« ﬂ«‰ «·„” ÊÏ „› ÊÕ √„ ·«
+                levelButtons[i].interactable = true;
+            }
+        }
+    }
+
+    // “— «·Œ—ÊÃ „‰ «··⁄»…
+    public void QuitGame()
+    {
+#if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+#else
+        Application.Quit();
+#endif
+    }
+
+    // › Õ ﬂ«‰›” «·„” ÊÌ« 
+    public void OpenLevels()
+    {
+        if (levelsCanvas != null)
+        {
+            // Õ›Ÿ Õ«·… «·√Ê»ÃÌﬂ  ﬁ»· ≈Œ›«¡Â
+            if (objectToHide != null)
+            {
+                wasObjectActive = objectToHide.activeSelf;
+                objectToHide.SetActive(false);
+            }
+
+            levelsCanvas.SetActive(true);
+            SetDefaultPreview();
+            currentHoveredLevel = -1;
+        }
+    }
+
+    // ≈€·«ﬁ ﬂ«‰›” «·„” ÊÌ« 
+    public void CloseLevels()
+    {
+        if (levelsCanvas != null)
+            levelsCanvas.SetActive(false);
+
+        // ≈⁄«œ… ŸÂÊ— «·√Ê»ÃÌﬂ  ≈–« ﬂ«‰ „Œ›Ì«
+        if (objectToHide != null && wasObjectActive)
+        {
+            objectToHide.SetActive(true);
+        }
+
+        SetDefaultPreview();
+        currentHoveredLevel = -1;
+    }
+
+    //  €ÌÌ— «·’Ê—… ⁄‰œ „—Ê— «·„«Ê” ⁄·Ï “—
+    public void OnLevelButtonHover(int levelIndex)
+    {
+        if (levelPreviewImage != null &&
+            levelIndex >= 0 &&
+            levelIndex < levelPreviewTextures.Length &&
+            levelPreviewTextures[levelIndex] != null)
+        {
+            levelPreviewImage.texture = levelPreviewTextures[levelIndex];
+            currentHoveredLevel = levelIndex;
+        }
+    }
+
+    // ≈⁄«œ…  ⁄ÌÌ‰ «·’Ê—… ≈·Ï «·«› —«÷Ì…
+    public void OnLevelButtonExit()
+    {
+        // ›ﬁÿ ≈–« ﬂ«‰ Â–« ÂÊ «·“— «·–Ì ﬂ«‰ „—Ê— ⁄·ÌÂ «·„«Ê”
+        if (currentHoveredLevel != -1)
+        {
+            SetDefaultPreview();
+            currentHoveredLevel = -1;
+        }
+    }
+
+    //  ⁄ÌÌ‰ «·’Ê—… «·«› —«÷Ì…
+    private void SetDefaultPreview()
+    {
+        if (levelPreviewImage != null && defaultPreviewTexture != null)
+        {
+            levelPreviewImage.texture = defaultPreviewTexture;
+        }
+        else if (levelPreviewImage != null && levelPreviewTextures.Length > 0 && levelPreviewTextures[0] != null)
+        {
+            // «” Œœ«„ √Ê· ’Ê—… ﬂ«› —«÷Ì… ≈–« ·„ Ì „  ⁄ÌÌ‰ ’Ê—… «› —«÷Ì…
+            levelPreviewImage.texture = levelPreviewTextures[0];
+        }
+    }
+
+    //  Õ„Ì· „” ÊÏ „⁄Ì‰ - «·ÿ—Ìﬁ… «·¬„‰…
+    public void LoadLevel(int levelIndex)
+    {
+        if (levelIndex >= 0 && levelIndex < levelSceneNames.Length && !string.IsNullOrEmpty(levelSceneNames[levelIndex]))
+        {
+            string sceneName = levelSceneNames[levelIndex];
+            Debug.Log("Ã«—Ì  Õ„Ì· «·„” ÊÏ: " + sceneName);
+
+            // «· Õﬁﬁ ≈–« ﬂ«‰ «·„‘Âœ „ÊÃÊœ ›Ì Build Settings
+            if (IsSceneInBuild(sceneName))
+            {
+                // ≈⁄«œ… ŸÂÊ— «·√Ê»ÃÌﬂ  ﬁ»·  Õ„Ì· «·”Ì‰ («Œ Ì«—Ì)
+                if (objectToHide != null && wasObjectActive)
+                {
+                    objectToHide.SetActive(true);
+                }
+
+                SceneManager.LoadScene(sceneName);
+            }
+            else
+            {
+                Debug.LogError($"«·„‘Âœ '{sceneName}' €Ì— „÷«› ≈·Ï Build Settings!");
+                ShowSceneError(sceneName);
+            }
+        }
+        else
+        {
+            Debug.LogError("„ƒ‘— «·„” ÊÏ €Ì— ’«·Õ: " + levelIndex);
+        }
+    }
+
+    // «· Õﬁﬁ ≈–« ﬂ«‰ «·„‘Âœ „÷«› ≈·Ï Build Settings
+    private bool IsSceneInBuild(string sceneName)
+    {
+        for (int i = 0; i < SceneManager.sceneCountInBuildSettings; i++)
+        {
+            string scenePath = SceneUtility.GetScenePathByBuildIndex(i);
+            string sceneNameInBuild = System.IO.Path.GetFileNameWithoutExtension(scenePath);
+
+            if (sceneNameInBuild == sceneName)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // ÿ—Ìﬁ… »œÌ·… ·· Õﬁﬁ „‰ «·„‘Âœ
+    private bool CanLoadScene(string sceneName)
+    {
+        try
+        {
+            // Â–Â «·ÿ—Ìﬁ…   Õﬁﬁ ≈–« ﬂ«‰ «·„‘Âœ Ì„ﬂ‰  Õ„Ì·Â
+            return Application.CanStreamedLevelBeLoaded(sceneName);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    // ⁄—÷ —”«·… Œÿ√ ··„” Œœ„
+    private void ShowSceneError(string sceneName)
+    {
+        // Ì„ﬂ‰ﬂ ≈÷«›… UI ·⁄—÷ «·—”«·… ··«⁄»
+        Debug.LogWarning($"·« Ì„ﬂ‰  Õ„Ì· «·„” ÊÏ '{sceneName}'.  √ﬂœ „‰ ≈÷«› Â ≈·Ï Build Settings.");
+
+        // Â‰« Ì„ﬂ‰ﬂ ≈ŸÂ«— ‰«›–… Œÿ√ ··«⁄»
+        // ShowErrorPopup($"Level '{sceneName}' is not available!");
+    }
+
+    // «·⁄Êœ… ≈·Ï «·ﬁ«∆„… «·—∆Ì”Ì…
+    public void LoadMainMenu()
+    {
+        // ≈⁄«œ… ŸÂÊ— «·√Ê»ÃÌﬂ  ≈–« ﬂ«‰ „Œ›Ì«
+        if (objectToHide != null && wasObjectActive)
+        {
+            objectToHide.SetActive(true);
+        }
+
+        string mainMenuScene = "MainMenu";
+
+        if (IsSceneInBuild(mainMenuScene))
+        {
+            SceneManager.LoadScene(mainMenuScene);
+        }
+        else
+        {
+            Debug.LogError($"„‘Âœ «·ﬁ«∆„… «·—∆Ì”Ì… '{mainMenuScene}' €Ì— „÷«› ≈·Ï Build Settings!");
+            // „Õ«Ê·… «” Œœ«„ «·„‘Âœ «·√Ê· ›Ì Build Settings ﬂ»œÌ·
+            if (SceneManager.sceneCountInBuildSettings > 0)
+            {
+                SceneManager.LoadScene(0);
+            }
+        }
+    }
+
+    // ÿ—Ìﬁ… · Õ„Ì· «·„‘Âœ »«”„Â „»«‘—…
+    public void LoadLevelByName(string sceneName)
+    {
+        if (!string.IsNullOrEmpty(sceneName) && IsSceneInBuild(sceneName))
+        {
+            SceneManager.LoadScene(sceneName);
+        }
+        else
+        {
+            Debug.LogError($"«·„‘Âœ '{sceneName}' €Ì— „÷«› ≈·Ï Build Settings!");
+            ShowSceneError(sceneName);
+        }
+    }
+}

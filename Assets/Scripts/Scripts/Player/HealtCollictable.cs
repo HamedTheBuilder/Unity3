@@ -1,0 +1,24 @@
+using UnityEngine;
+
+public class HealtCollictable : MonoBehaviour
+{
+
+    [SerializeField] private float healthValue;
+
+
+
+    private void OnTriggerEnter(Collider collision)
+
+    {
+        
+        if(collision.tag == "Player")
+        {
+            collision.GetComponent<Health>().AddHealth(healthValue);
+            gameObject.SetActive(false);
+        }
+
+
+    }
+
+
+}
