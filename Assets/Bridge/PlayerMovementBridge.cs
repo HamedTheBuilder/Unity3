@@ -25,13 +25,6 @@ public class PlayerMoveBridge : MonoBehaviour
     public float enemyBounceForce = 8f;
     public float enemySidePushForce = 10f;
 
-    [Header("Fall Death Settings")]
-    public float deathYLevel = -10f;
-    public float checkFallInterval = 0.5f;
-
-    [Header("Respawn Settings")]
-    public float respawnDelay = 1f;
-
     [Header("References")]
     public Transform cameraTransform;
     public PlayerAnimationController animationController;
@@ -44,7 +37,6 @@ public class PlayerMoveBridge : MonoBehaviour
     private bool isGrounded = false;
     private bool isCrouching = false;
     private bool isSprinting = false;
-    private bool isDead = false;
     private bool isAttacking = false;
     private Vector3 checkpointPosition;
     private Quaternion checkpointRotation;
@@ -61,15 +53,12 @@ public class PlayerMoveBridge : MonoBehaviour
         if (attackableLayers == 0)
             attackableLayers = LayerMask.GetMask("Default");
 
-        StartCoroutine(CheckFallDeath());
         UpdateHealthUI();
         UpdateCoinUI();
     }
 
     void Update()
     {
-        if (isDead) return;
-
         GetInput();
         HandleMovement();
         HandleJump();
@@ -212,94 +201,9 @@ public class PlayerMoveBridge : MonoBehaviour
         }
     }
 
-    IEnumerator CheckFallDeath()
-    {
-        while (true)
-        {
-            yield return new WaitForSeconds(checkFallInterval);
-
-            if (!isDead && transform.position.y < deathYLevel)
-            {
-                DieFromFall();
-            }
-        }
-    }
-
-    public void DieFromFall()
-    {
-        if (isDead) return;
-
-        isDead = true;
-        Debug.Log("Player died from fall!");
-
-        if (cameraFollow != null)
-        {
-            cameraFollow.StopFollowing();
-        }
-
-        if (rb != null)
-        {
-            rb.isKinematic = true;
-            rb.linearVelocity = Vector3.zero;
-        }
-
-        StartCoroutine(RespawnAfterDelay(respawnDelay));
-    }
-
     public void TakeDamage(int damage)
     {
-        if (isDead) return;
-
         currentHealth -= damage;
-        UpdateHealthUI();
-
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
-    }
-
-    void Die()
-    {
-        isDead = true;
-
-        if (cameraFollow != null)
-        {
-            cameraFollow.StopFollowing();
-        }
-
-        StartCoroutine(RespawnAfterDelay(respawnDelay));
-    }
-
-    IEnumerator RespawnAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        Respawn();
-    }
-
-    void Respawn()
-    {
-        transform.position = checkpointPosition;
-        transform.rotation = checkpointRotation;
-
-        currentHealth = maxHealth;
-        isDead = false;
-        jumpCount = 0;
-        isCrouching = false;
-        isSprinting = false;
-        isAttacking = false;
-
-        if (rb != null)
-        {
-            rb.isKinematic = false;
-            rb.linearVelocity = Vector3.zero;
-        }
-
-        if (cameraFollow != null)
-        {
-            cameraFollow.ResumeFollowing();
-        }
-
         UpdateHealthUI();
     }
 
@@ -341,31 +245,8 @@ public class PlayerMoveBridge : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("DeathZone"))
-        {
-            DieFromFall();
-        }
-        else if (other.CompareTag("Checkpoint"))
-        {
-            CheckPoint checkpoint = other.GetComponent<CheckPoint>();
-            if (checkpoint != null)
-            {
-                checkpoint.ActivateCheckpoint(this);
-            }
-        }
-        else if (other.CompareTag("Coin"))
-        {
-            AddCoin();
-            Destroy(other.gameObject);
-        }
-    }
-
     void HandleEnemyCollision(GameObject enemy, Vector3 contactPoint)
     {
-        if (isDead) return;
-
         GoatEnemy enemyScript = enemy.GetComponent<GoatEnemy>();
         if (enemyScript != null)
         {
@@ -416,7 +297,6 @@ public class PlayerMoveBridge : MonoBehaviour
     private bool attackInput;
 
     // Public methods
-    public bool IsDead() { return isDead; }
     public int GetCurrentHealth() { return currentHealth; }
     public int GetCoins() { return coins; }
     public bool IsGrounded() { return isGrounded; }
@@ -433,10 +313,5 @@ public class PlayerMoveBridge : MonoBehaviour
 
         Gizmos.color = Color.green;
         Gizmos.DrawRay(transform.position, Vector3.down * 0.2f);
-
-        Gizmos.color = Color.yellow;
-        Vector3 deathLineStart = new Vector3(transform.position.x - 5f, deathYLevel, transform.position.z);
-        Vector3 deathLineEnd = new Vector3(transform.position.x + 5f, deathYLevel, transform.position.z);
-        Gizmos.DrawLine(deathLineStart, deathLineEnd);
     }
 }
