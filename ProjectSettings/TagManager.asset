@@ -15,11 +15,6 @@ TagManager:
   - 'DeathZone '
   - 'Checkpoint '
   - DeathZone
-  - LightTrigger
-  - SwapBox
-  - Ring
-  - Bullet
-  - TeleportTarget
   layers:
   - Default
   - TransparentFX
