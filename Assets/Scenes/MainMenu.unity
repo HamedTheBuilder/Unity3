@@ -2350,7 +2350,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1342897002}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1c37cccbd9c24cf438076c1a705c4fee, type: 3}
   m_Name: 
@@ -2401,7 +2401,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1342897004}
         m_TargetAssemblyTypeName: PlayButton, Assembly-CSharp
-        m_MethodName: LoadGameScene
+        m_MethodName: ExitGame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

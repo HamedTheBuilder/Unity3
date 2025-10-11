@@ -7,4 +7,9 @@ public class PlayButton : MonoBehaviour
     {
         SceneManager.LoadScene("Astroid 1");
     }
+
+    public void ExitGame()
+    {
+        Application.Quit();
+    }
 }
