@@ -341,26 +341,7 @@ public class PlayerMoveBridge : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("DeathZone"))
-        {
-            DieFromFall();
-        }
-        else if (other.CompareTag("Checkpoint"))
-        {
-            CheckPoint checkpoint = other.GetComponent<CheckPoint>();
-            if (checkpoint != null)
-            {
-                checkpoint.ActivateCheckpoint(this);
-            }
-        }
-        else if (other.CompareTag("Coin"))
-        {
-            AddCoin();
-            Destroy(other.gameObject);
-        }
-    }
+
 
     void HandleEnemyCollision(GameObject enemy, Vector3 contactPoint)
     {

@@ -1,7 +1,7 @@
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -55,7 +55,7 @@ public class UIManager : MonoBehaviour
 
     void Update()
     {
-        // İÊÍ æÅÛáÇŞ ŞÇÆãÉ ÇáÅíŞÇİ ÈÒÑ ESC
+        // ÙØªØ­ ÙˆØ¥ØºÙ„Ø§Ù‚ Ù‚Ø§Ø¦Ù…Ø© Ø§Ù„Ø¥ÙŠÙ‚Ø§Ù Ø¨Ø²Ø± ESC
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (pausePanel != null && pausePanel.activeInHierarchy)
@@ -71,28 +71,28 @@ public class UIManager : MonoBehaviour
 
     void SetupButtonListeners()
     {
-        // ÒÑ ÇáãæÇÕáÉ
+        // Ø²Ø± Ø§Ù„Ù…ÙˆØ§ØµÙ„Ø©
         if (resumeButton != null)
         {
             resumeButton.onClick.RemoveAllListeners();
             resumeButton.onClick.AddListener(ResumeGame);
         }
 
-        // ÒÑ ÅÚÇÏÉ ÇááÚÈÉ
+        // Ø²Ø± Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù„Ø¹Ø¨Ø©
         if (restartButton != null)
         {
             restartButton.onClick.RemoveAllListeners();
             restartButton.onClick.AddListener(RestartGame);
         }
 
-        // ÒÑ ÇáÚæÏÉ ááãÇíä ãäíæ
+        // Ø²Ø± Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„Ù„Ù…Ø§ÙŠÙ† Ù…Ù†ÙŠÙˆ
         if (mainMenuButton != null)
         {
             mainMenuButton.onClick.RemoveAllListeners();
             mainMenuButton.onClick.AddListener(GoToMainMenu);
         }
 
-        // ÒÑ ÇáÎÑæÌ ãä ÇááÚÈÉ
+        // Ø²Ø± Ø§Ù„Ø®Ø±ÙˆØ¬ Ù…Ù† Ø§Ù„Ù„Ø¹Ø¨Ø©
         if (quitButton != null)
         {
             quitButton.onClick.RemoveAllListeners();
@@ -102,13 +102,13 @@ public class UIManager : MonoBehaviour
 
     public void ResumeGame()
     {
-        // ÅÎİÇÁ ÔÇÔÉ ÇáÅíŞÇİ
+        // Ø¥Ø®ÙØ§Ø¡ Ø´Ø§Ø´Ø© Ø§Ù„Ø¥ÙŠÙ‚Ø§Ù
         HidePauseMenu();
 
-        // ÅÚÇÏÉ ÇááÚÈÉ
+        // Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù„Ø¹Ø¨Ø©
         Time.timeScale = 1f;
 
-        // ÊÔÛíá ÕæÊ ÇáÒÑ ÅĞÇ ßÇä AudioManager ãæÌæÏ
+        // ØªØ´ØºÙŠÙ„ ØµÙˆØª Ø§Ù„Ø²Ø± Ø¥Ø°Ø§ ÙƒØ§Ù† AudioManager Ù…ÙˆØ¬ÙˆØ¯
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayButtonClick();
@@ -120,9 +120,9 @@ public class UIManager : MonoBehaviour
         if (pausePanel != null)
         {
             pausePanel.SetActive(true);
-            Time.timeScale = 0f; // ÅíŞÇİ ÇááÚÈÉ
+            Time.timeScale = 0f; // Ø¥ÙŠÙ‚Ø§Ù Ø§Ù„Ù„Ø¹Ø¨Ø©
 
-            // ÊÔÛíá ÕæÊ İÊÍ ÇáŞÇÆãÉ
+            // ØªØ´ØºÙŠÙ„ ØµÙˆØª ÙØªØ­ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©
             if (AudioManager.Instance != null)
             {
                 AudioManager.Instance.PlayButtonClick();
@@ -135,7 +135,7 @@ public class UIManager : MonoBehaviour
         if (pausePanel != null)
         {
             pausePanel.SetActive(false);
-            Time.timeScale = 1f; // ÇÓÊÆäÇİ ÇááÚÈÉ
+            Time.timeScale = 1f; // Ø§Ø³ØªØ¦Ù†Ø§Ù Ø§Ù„Ù„Ø¹Ø¨Ø©
         }
     }
 
@@ -151,7 +151,7 @@ public class UIManager : MonoBehaviour
         currentCoins += amount;
         UpdateCoinDisplay(currentCoins);
 
-        // ÊÔÛíá ÕæÊ ÌãÚ ÇáÚãáÉ
+        // ØªØ´ØºÙŠÙ„ ØµÙˆØª Ø¬Ù…Ø¹ Ø§Ù„Ø¹Ù…Ù„Ø©
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayCoinCollect();
@@ -177,7 +177,7 @@ public class UIManager : MonoBehaviour
             if (gameOverText != null)
                 gameOverText.text = "Game Over!\nCoins Collected: " + currentCoins;
 
-            // ÊÔÛíá ÕæÊ äåÇíÉ ÇááÚÈÉ
+            // ØªØ´ØºÙŠÙ„ ØµÙˆØª Ù†Ù‡Ø§ÙŠØ© Ø§Ù„Ù„Ø¹Ø¨Ø©
             if (AudioManager.Instance != null)
             {
                 AudioManager.Instance.PlayGameOver();
@@ -195,13 +195,13 @@ public class UIManager : MonoBehaviour
     {
         Time.timeScale = 1f;
 
-        // ÊÔÛíá ÕæÊ ÇáÒÑ
+        // ØªØ´ØºÙŠÙ„ ØµÙˆØª Ø§Ù„Ø²Ø±
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayButtonClick();
         }
 
-        // ÅÚÇÏÉ ÊÍãíá ÇáÓíä ÇáÍÇáí
+        // Ø¥Ø¹Ø§Ø¯Ø© ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø³ÙŠÙ† Ø§Ù„Ø­Ø§Ù„ÙŠ
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 
@@ -209,33 +209,33 @@ public class UIManager : MonoBehaviour
     {
         Time.timeScale = 1f;
 
-        // ÊÔÛíá ÕæÊ ÇáÒÑ
+        // ØªØ´ØºÙŠÙ„ ØµÙˆØª Ø§Ù„Ø²Ø±
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayButtonClick();
         }
 
-        // ÇáÇäÊŞÇá Åáì Óíä ÇáãÇíä ãäíæ
+        // Ø§Ù„Ø§Ù†ØªÙ‚Ø§Ù„ Ø¥Ù„Ù‰ Ø³ÙŠÙ† Ø§Ù„Ù…Ø§ÙŠÙ† Ù…Ù†ÙŠÙˆ
         if (!string.IsNullOrEmpty(mainMenuSceneName))
         {
             SceneManager.LoadScene(mainMenuSceneName);
         }
         else
         {
-            // ÅĞÇ áã íÊã ÊÚííä ÇÓã ÇáÓíä¡ ÍÇæá ÊÍãíá ÇáÓíä ÇáÃæá
+            // Ø¥Ø°Ø§ Ù„Ù… ÙŠØªÙ… ØªØ¹ÙŠÙŠÙ† Ø§Ø³Ù… Ø§Ù„Ø³ÙŠÙ†ØŒ Ø­Ø§ÙˆÙ„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø³ÙŠÙ† Ø§Ù„Ø£ÙˆÙ„
             SceneManager.LoadScene(0);
         }
     }
 
     public void QuitGame()
     {
-        // ÊÔÛíá ÕæÊ ÇáÒÑ
+        // ØªØ´ØºÙŠÙ„ ØµÙˆØª Ø§Ù„Ø²Ø±
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayButtonClick();
         }
 
-        // ÊÃÎíÑ ÇáÎÑæÌ ŞáíáÇğ áÓãÇÚ ÇáÕæÊ
+        // ØªØ£Ø®ÙŠØ± Ø§Ù„Ø®Ø±ÙˆØ¬ Ù‚Ù„ÙŠÙ„Ø§Ù‹ Ù„Ø³Ù…Ø§Ø¹ Ø§Ù„ØµÙˆØª
         Invoke("QuitApplication", 0.3f);
     }
 
