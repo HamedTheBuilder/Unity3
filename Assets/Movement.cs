@@ -26,13 +26,12 @@ public class Movement : MonoBehaviour
         // Movement
         float Horizontal = Input.GetAxis("Horizontal");
         float Vertical = Input.GetAxis("Vertical");
-        movement = new Vector3(Horizontal, 0, Vertical);
+
+        // ⁄ﬂ” «·« Ã«Â«  ·Õ· «·„‘ﬂ·…
+        movement = new Vector3(-Horizontal, 0, -Vertical);
 
         // «· Õﬂ„ ›Ì «·√‰Ì„Ì‘‰
         HandleAnimation(Horizontal, Vertical);
-
-        // «·Õ—ﬂ…
-        rb.MovePosition(rb.position + movement * speed * Time.deltaTime);
 
         // Jump
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
@@ -41,6 +40,12 @@ public class Movement : MonoBehaviour
             isGrounded = false;
             animator.SetBool("IsJumping", true);
         }
+    }
+
+    void FixedUpdate()
+    {
+        // «” Œœ«„ FixedUpdate ··Õ—ﬂ… „⁄ Rigidbody (√›÷· ··√œ«¡)
+        rb.MovePosition(rb.position + movement * speed * Time.fixedDeltaTime);
     }
 
     // œ«·… ·· Õﬂ„ ›Ì «·√‰Ì„Ì‘‰
