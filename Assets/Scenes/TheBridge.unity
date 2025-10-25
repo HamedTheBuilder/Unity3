@@ -8249,6 +8249,20 @@ MonoBehaviour:
   shadowScale: {x: 0.5, y: 0.5, z: 0.1}
   followPlayer: 1
   followSmoothness: 100
+--- !u!114 &166943828
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 166943818}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 68c2903ade496ee4891a83b69f1a6ab0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  friction: 0
+  bounciness: 0
 --- !u!1 &171678395
 GameObject:
   m_ObjectHideFlags: 0
@@ -10453,6 +10467,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 122c5767b35de7b40a31f5103748220e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 166943826}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 122c5767b35de7b40a31f5103748220e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 166943828}
   m_SourcePrefab: {fileID: 100100000, guid: 122c5767b35de7b40a31f5103748220e, type: 3}
 --- !u!1 &284004809
 GameObject:
